@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识图谱 — 黄涵钰</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'PingFang SC','Microsoft YaHei',sans-serif; background:#0f1117; color:#e0e0e0; overflow:hidden; height:100vh; display:flex; }
+
+/* ── 图谱区 ── */
+#graph-area { flex:1; position:relative; }
+svg { width:100%; height:100%; }
+
+/* 边 */
+.link { stroke:#333; stroke-opacity:0.5; stroke-width:1.5; }
+.link.highlighted { stroke:#7b8cde; stroke-opacity:0.9; stroke-width:2.5; }
+
+/* 节点圆 */
+.node circle {
+  stroke:#1a1d27; stroke-width:2;
+  cursor:pointer; transition: r 0.15s, filter 0.15s;
+  filter: brightness(0.75);
+}
+.node circle.mastered  { filter: brightness(1.1) drop-shadow(0 0 6px currentColor); }
+.node circle.learning  { filter: brightness(0.9); }
+.node circle.dimmed    { filter: brightness(0.25); }
+.node text { font-size:11px; fill:#ccc; pointer-events:none; text-anchor:middle; dominant-baseline:central; user-select:none; }
+.node.selected circle { stroke:#fff; stroke-width:2.5; }
+
+/* 分类颜色 */
+.cat-paper   circle { fill:#e05a6e; }
+.cat-course  circle { fill:#5a9ee0; }
+.cat-process circle { fill:#5ac97a; }
+.cat-interview circle { fill:#e0b85a; }
+
+/* 状态叠加色 */
+.cat-paper.mastered   circle { fill:#ff8fa0; }
+.cat-course.mastered  circle { fill:#7ab8f5; }
+.cat-process.mastered circle { fill:#7ae09a; }
+.cat-interview.mastered circle { fill:#f5cf7a; }
+
+/* 学习中节点描边 */
+.node.learning circle { stroke:#ffe066; stroke-width:2.5; }
+
+/* ── 右侧详情面板 ── */
+#detail-panel {
+  width:300px; height:100vh; background:#16192a; border-left:1px solid #2a2d3e;
+  display:flex; flex-direction:column; overflow:hidden;
+  transition: transform 0.25s;
+}
+#detail-panel.hidden { transform: translateX(300px); position:absolute; right:0; }
+#detail-header {
+  padding:18px 16px 12px; border-bottom:1px solid #2a2d3e;
+  display:flex; align-items:flex-start; gap:10px;
+}
+#detail-title { font-size:17px; font-weight:600; flex:1; line-height:1.4; }
+#detail-cat-badge {
+  font-size:10px; padding:2px 8px; border-radius:10px; white-space:nowrap;
+  background:#2a2d3e; color:#aaa; margin-top:3px;
+}
+#detail-body { flex:1; overflow-y:auto; padding:14px 16px; }
+#detail-desc { font-size:13px; color:#b0b0c0; line-height:1.7; margin-bottom:14px; }
+#detail-links h4 { font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+#detail-links-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+.link-chip {
+  font-size:11px; padding:3px 10px; border-radius:12px;
+  background:#1e2235; border:1px solid #2a2d3e; color:#9ab; cursor:pointer;
+  transition: background 0.15s;
+}
+.link-chip:hover { background:#2a2d3e; color:#dde; }
+#detail-note-label { font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+#detail-note {
+  width:100%; min-height:100px; background:#1e2235; border:1px solid #2a2d3e;
+  border-radius:6px; color:#ccc; font-size:13px; padding:8px 10px;
+  resize:vertical; font-family:inherit; line-height:1.6;
+}
+#detail-note:focus { outline:none; border-color:#5a6a9e; }
+#detail-footer { padding:12px 16px; border-top:1px solid #2a2d3e; }
+.status-btns { display:flex; gap:6px; }
+.status-btn {
+  flex:1; padding:7px 0; border-radius:6px; font-size:12px; font-weight:500;
+  border:1px solid #2a2d3e; background:#1e2235; color:#888; cursor:pointer;
+  transition: all 0.15s;
+}
+.status-btn:hover { border-color:#5a6a9e; color:#ccc; }
+.status-btn.active { border-color:currentColor; }
+.status-btn.active.s-todo    { color:#666; background:#1e2235; }
+.status-btn.active.s-learning { color:#ffe066; background:#2a2510; border-color:#ffe066; }
+.status-btn.active.s-mastered { color:#5ac97a; background:#102018; border-color:#5ac97a; }
+
+/* ── 右上角看板 ── */
+#dashboard {
+  position:absolute; top:16px; right:316px; width:240px;
+  background:#16192a; border:1px solid #2a2d3e; border-radius:10px;
+  padding:14px; z-index:10;
+}
+#dashboard.panel-hidden { right:16px; }
+#dash-title { font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+#dash-total-label { font-size:13px; color:#ccc; margin-bottom:5px; }
+.progress-bar-wrap { background:#1e2235; border-radius:4px; height:6px; margin-bottom:12px; overflow:hidden; }
+.progress-bar-fill { height:100%; border-radius:4px; background:#5ac97a; transition: width 0.4s; }
+.cat-progress { margin-bottom:8px; }
+.cat-progress-label { font-size:11px; color:#888; margin-bottom:3px; display:flex; justify-content:space-between; }
+.cat-progress-label span { color:#555; }
+.cat-bar-wrap { background:#1e2235; border-radius:3px; height:4px; overflow:hidden; }
+.cat-bar-fill { height:100%; border-radius:3px; transition: width 0.4s; }
+.cat-bar-paper   { background:#e05a6e; }
+.cat-bar-course  { background:#5a9ee0; }
+.cat-bar-process { background:#5ac97a; }
+.cat-bar-interview { background:#e0b85a; }
+#btn-screenshot {
+  width:100%; margin-top:10px; padding:7px 0; border-radius:6px;
+  background:#1e2235; border:1px solid #2a2d3e; color:#9ab;
+  font-size:12px; cursor:pointer; transition: all 0.15s;
+}
+#btn-screenshot:hover { background:#2a3050; color:#ccd; border-color:#5a6a9e; }
+
+/* ── 左上角标题 ── */
+#header {
+  position:absolute; top:16px; left:16px; z-index:10;
+}
+#header h1 { font-size:18px; font-weight:700; color:#eee; letter-spacing:0.5px; }
+#header p  { font-size:11px; color:#555; margin-top:3px; }
+
+/* ── 图例 ── */
+#legend {
+  position:absolute; bottom:16px; left:16px; z-index:10;
+  display:flex; gap:14px; align-items:center;
+}
+.legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#666; }
+.legend-dot { width:9px; height:9px; border-radius:50%; }
+
+/* ── 右键菜单 ── */
+#ctx-menu {
+  position:fixed; background:#1e2235; border:1px solid #2a2d3e; border-radius:8px;
+  padding:6px 0; z-index:999; display:none; min-width:140px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.ctx-item { padding:8px 16px; font-size:13px; cursor:pointer; color:#ccc; }
+.ctx-item:hover { background:#2a3050; }
+.ctx-item .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
+
+/* 搜索框 */
+#search-wrap {
+  position:absolute; top:16px; left:50%; transform:translateX(-50%);
+  z-index:10;
+}
+#search {
+  background:#16192a; border:1px solid #2a2d3e; border-radius:20px;
+  color:#ccc; font-size:13px; padding:7px 16px; width:200px;
+  outline:none; transition: border-color 0.15s, width 0.2s;
+}
+#search:focus { border-color:#5a6a9e; width:260px; }
+#search::placeholder { color:#444; }
+
+/* 滚动条 */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:#0f1117; }
+::-webkit-scrollbar-thumb { background:#2a2d3e; border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div id="graph-area">
+  <svg id="graph"></svg>
+
+  <div id="header">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#666;text-decoration:none;margin-bottom:6px;padding:4px 10px;background:#16192a;border:1px solid #2a2d3e;border-radius:14px;" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#666'">← 返回看板</a>
+    <h1>知识图谱</h1>
+    <p>点击节点展开 · 双击切换掌握状态 · 右键更多操作</p>
+  </div>
+
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="🔍 搜索节点…">
+  </div>
+
+  <div id="dashboard">
+    <div id="dash-title">学习进度</div>
+    <div id="dash-total-label">加载中…</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="total-bar" style="width:0%"></div></div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">🔴 论文技术 <span id="pct-paper">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-paper" id="bar-paper" style="width:0%"></div></div>
+    </div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">🔵 专业课 <span id="pct-course">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-course" id="bar-course" style="width:0%"></div></div>
+    </div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">🟢 保研流程 <span id="pct-process">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-process" id="bar-process" style="width:0%"></div></div>
+    </div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">🟡 面试准备 <span id="pct-interview">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-interview" id="bar-interview" style="width:0%"></div></div>
+    </div>
+    <button id="btn-screenshot">📸 生成进度截图</button>
+  </div>
+
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#e05a6e"></div>论文技术</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5a9ee0"></div>专业课</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5ac97a"></div>保研流程</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e0b85a"></div>面试准备</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#444; border:1px solid #ffe066"></div>学习中</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5ac97a; box-shadow:0 0 5px #5ac97a"></div>已掌握</div>
+  </div>
+</div>
+
+<!-- 右侧详情面板 -->
+<div id="detail-panel" class="hidden">
+  <div id="detail-header">
+    <div>
+      <div id="detail-title">—</div>
+      <div id="detail-cat-badge">—</div>
+    </div>
+  </div>
+  <div id="detail-body">
+    <div id="detail-desc"></div>
+    <div id="detail-links">
+      <h4>关联节点</h4>
+      <div id="detail-links-list"></div>
+    </div>
+    <div id="detail-note-label">我的笔记</div>
+    <textarea id="detail-note" placeholder="在这里记录你的理解、疑问或复习要点…"></textarea>
+  </div>
+  <div id="detail-footer">
+    <div class="status-btns">
+      <button class="status-btn s-todo"     data-s="todo">⚪ 未学</button>
+      <button class="status-btn s-learning" data-s="learning">🟡 学习中</button>
+      <button class="status-btn s-mastered" data-s="mastered">🟢 已掌握</button>
+    </div>
+  </div>
+</div>
+
+<!-- 右键菜单 -->
+<div id="ctx-menu">
+  <div class="ctx-item" data-s="todo"><span class="dot" style="background:#444;border:1px solid #666"></span>标记为未学</div>
+  <div class="ctx-item" data-s="learning"><span class="dot" style="background:#ffe066"></span>标记为学习中</div>
+  <div class="ctx-item" data-s="mastered"><span class="dot" style="background:#5ac97a"></span>标记为已掌握</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// 数据定义
+// ═══════════════════════════════════════════════
+const NODES = [
+  // ── 论文技术 (cat: paper) ──
+  { id:"gesture",    label:"手势识别",       cat:"paper",     desc:"基于视频序列的手部姿态估计，人机互动游戏场景，输入为RGB图像序列，输出为手部关键点坐标及手势类别。" },
+  { id:"refconv",    label:"RefConv",         cat:"paper",     desc:"可重参数化的引用卷积。训练时用多分支结构（Wb基础权重+Wr可学习残差），推理时合并为单卷积，解决分组卷积组间无交互的问题。" },
+  { id:"simsru",     label:"SimSRU",          cat:"paper",     desc:"简化循环单元，用于时序建模，相比标准RNN参数更少、训练更快，在手势序列分类中替代LSTM。" },
+  { id:"reparam",    label:"重参数化卷积",    cat:"paper",     desc:"训练时多分支（不同感受野）→推理时合并为单卷积。核心是等价变换：串联→卷积合并，并联→权重相加。代表工作：RepVGG, ACNet。" },
+  { id:"groupconv",  label:"分组卷积",        cat:"paper",     desc:"将输入通道分成G组独立卷积，减少参数量。问题：不同组之间缺乏信息交互，RefConv正是为解决这个问题设计的。" },
+  { id:"attention",  label:"注意力机制",      cat:"paper",     desc:"模型自动学习输入不同部分的重要性权重。Self-Attention: Q/K/V矩阵；空间注意力：CBAM, SE；通道注意力。" },
+  { id:"augment",    label:"数据增强",        cat:"paper",     desc:"在线数据增强：随机裁剪、翻转、色彩抖动，在训练时实时生成，避免存储膨胀。论文1中用于抵消RefConv引入额外参数的过拟合风险。" },
+  { id:"resnext",    label:"ResNeXt",         cat:"paper",     desc:"ResNet变体，引入分组卷积+跳跃连接。每个残差块包含并行分组卷积，width×groups决定模型容量。RefConv基于此设计。" },
+  { id:"skeleton",   label:"骨骼关键点检测",  cat:"paper",     desc:"检测手部21个关键点，用于手势识别前处理。使用热力图回归（heatmap regression）方法，每个关键点对应一张高斯热力图。" },
+  { id:"coes",       label:"CoES",            cat:"paper",     desc:"Chain-of-Emotional-Support，三段推理链：①情绪推理(s→e→i)②策略推理(thought→stage→strategy，含2阶段RAG)③回复生成(原始→反思→修订)。" },
+  { id:"esmct",      label:"ESMCT",           cat:"paper",     desc:"情绪支持蒙特卡洛树。将对话建模为MDP，5种LLM角色协作，PUCT公式选节点，多目标奖励函数含阶段感知动态权重λ=t/T。" },
+  { id:"cot",        label:"链式思维CoT",     cat:"paper",     desc:"让LLM生成推理步骤再给出答案，显著提升复杂推理准确率。CoES的核心机制，每个推理链都是一个CoT实例。" },
+  { id:"mcts",       label:"MCTS",            cat:"paper",     desc:"蒙特卡洛树搜索：选择(PUCT)→扩展→模拟→回传。ESMCT将其适配到对话规划，节点为(对话历史,情绪状态,目标状态)。" },
+  { id:"rag",        label:"RAG检索增强",     cat:"paper",     desc:"Retrieval-Augmented Generation。CoES中2阶段：①Sentence-BERT+Chroma向量库按情境相似度检索→②话语相似度精排。" },
+  { id:"comet",      label:"COMET知识库",     cat:"paper",     desc:"常识知识库，5种关系(xReact,xWant,xNeed,xIntent,xEffect)。CoES用DeBERTa过滤低质量条目后注入情绪推理链。" },
+  { id:"llmft",      label:"大语言模型微调",  cat:"paper",     desc:"指令微调(instruction tuning)。论文2用4-bit量化+单张RTX 4090，测试了llama2-7b/llama3-8b/mistral-7b/gemma-7b，temperature=0.95。" },
+  { id:"esconv",     label:"ESConv数据集",    cat:"paper",     desc:"情绪支持对话数据集，1300条对话，8种支持策略。论文2：195条测试集，1105条作为RAG检索库。" },
+  { id:"hillmodel",  label:"Hill三阶段模型",  cat:"paper",     desc:"心理咨询理论：探索(Exploration)→安慰(Comfort)→行动(Action)。ESMCT的阶段感知权重基于此，早期探索权重高，后期行动权重高。" },
+
+  // ── 专业课 (cat: course) ──
+  { id:"ds",       label:"数据结构",       cat:"course",    desc:"数组、链表、栈、队列、树（二叉树/BST/AVL/红黑树/B树）、图、堆。重点：各结构的增删查时间复杂度。" },
+  { id:"sort",     label:"排序算法",       cat:"course",    desc:"快排O(nlogn)/归并O(nlogn)/堆排O(nlogn)/计数排序O(n+k)。快排最坏O(n²)，归并稳定，堆排原地。手写快排是高频面试题。" },
+  { id:"tree",     label:"二叉树",         cat:"course",    desc:"前中后序遍历（递归+迭代）、层序遍历（BFS）、BST性质、平衡树（AVL旋转）。DFS/BFS框架要能背出来。" },
+  { id:"graph_ds", label:"图论基础",       cat:"course",    desc:"BFS/DFS、最短路(Dijkstra/Floyd)、最小生成树(Prim/Kruskal)、拓扑排序、强连通分量。" },
+  { id:"os",       label:"操作系统",       cat:"course",    desc:"进程/线程、调度算法、内存管理（分页/分段）、文件系统、I/O、死锁（四条件+银行家算法）。" },
+  { id:"process",  label:"进程与线程",     cat:"course",    desc:"进程=资源分配单位，线程=CPU调度单位。PCB结构，进程状态机(就绪/运行/阻塞)，进程通信(管道/信号/共享内存/消息队列)。" },
+  { id:"schedule", label:"调度算法",       cat:"course",    desc:"FCFS/SJF/RR时间片轮转/优先级调度/多级反馈队列。评价指标：周转时间、等待时间、响应时间、CPU利用率。" },
+  { id:"memory",   label:"内存管理",       cat:"course",    desc:"虚拟内存、分页(页表/TLB)、分段、段页式、缺页置换(FIFO/LRU/Clock)、内存碎片。" },
+  { id:"network",  label:"计算机网络",     cat:"course",    desc:"OSI七层/TCP-IP五层模型、HTTP/HTTPS、TCP/UDP、DNS、路由协议。重点：三次握手四次挥手。" },
+  { id:"tcpip",    label:"TCP/IP",         cat:"course",    desc:"三次握手(SYN/SYN-ACK/ACK)，四次挥手(FIN/ACK/FIN/ACK)，TIME_WAIT=2MSL原因，拥塞控制(慢启动/拥塞避免/快重传/快恢复)。" },
+  { id:"http",     label:"HTTP/HTTPS",     cat:"course",    desc:"HTTP无状态协议，请求方法(GET/POST/PUT/DELETE)，状态码(2xx成功/3xx重定向/4xx客户端错/5xx服务端错)。HTTPS=HTTP+TLS，非对称加密交换密钥。" },
+  { id:"ca",       label:"计算机组成原理", cat:"course",    desc:"指令系统、CPU结构(ALU/CU/寄存器)、流水线、Cache(局部性原理/替换策略)、总线、I/O接口。" },
+  { id:"cache",    label:"Cache与存储层次",cat:"course",    desc:"L1/L2/L3 Cache，局部性原理(时间/空间)，Cache映射(直接/全相联/组相联)，写策略(写直达/写回)。" },
+  { id:"pipeline", label:"流水线",         cat:"course",    desc:"指令流水线5段：IF/ID/EX/MEM/WB。冒险：结构冒险/数据冒险(RAW/WAR/WAW)/控制冒险。解决：停顿/转发/分支预测。" },
+  { id:"ml_basic", label:"机器学习基础",   cat:"course",    desc:"监督/无监督/强化学习，梯度下降，损失函数，正则化(L1/L2)，过拟合/欠拟合，交叉验证，评价指标(Acc/F1/AUC)。" },
+  { id:"dl_basic", label:"深度学习基础",   cat:"course",    desc:"BP反向传播，激活函数(ReLU/Sigmoid/Tanh)，BN批归一化，Dropout，CNN/RNN/Transformer架构对比。" },
+  { id:"conv",     label:"卷积神经网络",   cat:"course",    desc:"卷积层(卷积核/步长/填充/输出尺寸)，池化层(Max/Avg)，全连接层，经典网络：LeNet/AlexNet/VGG/ResNet/MobileNet。" },
+  { id:"transformer", label:"Transformer", cat:"course",    desc:"Self-Attention O(n²d)，多头注意力，位置编码，Encoder-Decoder结构，LayerNorm，FFN。是CoES/ESMCT的基础架构。" },
+
+  // ── 保研流程 (cat: process) ──
+  { id:"summer",   label:"夏令营",         cat:"process",   desc:"一般5-8月，各学校官网报名，提交材料（成绩单/科研经历/推荐信），通过初审后参加笔试+面试，优秀营员获优营offer。" },
+  { id:"preyoumian",label:"预推免",        cat:"process",   desc:"9月中旬预推免系统开放，填报志愿，各学校组织复试。与夏令营offer可同时持有，预推免结束后统一确认。" },
+  { id:"contact",  label:"联系导师",       cat:"process",   desc:"提前联系意向导师，展示科研背景，获得导师意向接收。邮件结构：自我介绍+研究背景+为何选择该导师+附件(简历/成绩单)。" },
+  { id:"materials",label:"材料准备",       cat:"process",   desc:"成绩单（加盖公章）、英语成绩（CET-4/6或托福雅思）、推荐信（2-3封）、个人简历、科研经历描述、研究计划书。" },
+  { id:"recom",    label:"推荐信",         cat:"process",   desc:"一般需要2-3封，来自指导老师、课程教授。要求：有学校信头、教授签名、描述你的科研能力和品格。提前1-2个月请老师写。" },
+  { id:"research_plan",label:"研究计划书", cat:"process",   desc:"说明你未来3年想研究什么、为什么感兴趣、如何实施。要结合目标导师的研究方向，不超过1000字，逻辑清晰即可。" },
+  { id:"gpa",      label:"GPA与成绩单",   cat:"process",   desc:"大多数学校要求专业排名前30%或GPA≥3.5/4.0。重点课程（数学、专业核心课）成绩尤其重要，要单独列出。" },
+  { id:"english",  label:"英语成绩",       cat:"process",   desc:"CET-6>500分较有竞争力，部分学校接受CET-4。有些顶校要求托福/雅思（出国联培项目必须）。面试可能有英文自我介绍。" },
+  { id:"cv",       label:"个人简历",       cat:"process",   desc:"1页A4，包含：教育背景、科研经历（项目描述+成果）、获奖情况、技能（编程语言/工具）、发表论文（如有）。" },
+  { id:"timeline", label:"时间线规划",     cat:"process",   desc:"3月：联系导师，准备材料→5-8月：参加夏令营→9月15日：预推免系统开放→9月底：志愿确认截止→10月：录取通知。" },
+
+  // ── 面试准备 (cat: interview) ──
+  { id:"selfintro",  label:"自我介绍",     cat:"interview", desc:"2-3分钟，结构：姓名+学校+专业→核心科研经历（论文重点）→技术能力→为何报考该学校/方向。要自然流畅，不要背稿。" },
+  { id:"paper_talk", label:"论文讲解",     cat:"interview", desc:"核心环节。准备：背景动机→创新点（RefConv/CoES/ESMCT）→实验结果→个人贡献。预期追问：为什么这样设计、和baseline对比、局限性。" },
+  { id:"qa_prep",    label:"专业课问答",   cat:"interview", desc:"高频：手撕排序、图的BFS/DFS、进程vs线程、TCP握手挥手、梯度消失、Attention复杂度。回答要先说思路再写代码。" },
+  { id:"tianmei",    label:"田媚老师档案", cat:"interview", desc:"北交大计算机学院副教授。研究方向：机器学习+计算机视觉+智能感知。代表项目：高铁轮轨检测（三维点云）、眼动追踪ASD识别。H指数11。" },
+  { id:"bjtu",       label:"北交大计算机学院",cat:"interview",desc:"北京交通大学计算机与信息技术学院，985/211。田媚老师所在学院，主要招生方向：计算机科学与技术、人工智能。" },
+  { id:"eng_intro",  label:"英文自我介绍", cat:"interview", desc:"1分钟英文版本。Hi, I'm ... a final-year student majoring in ... My research focuses on ... 语速放慢，发音清晰比词汇华丽更重要。" },
+];
+
+const EDGES = [
+  // 论文技术内部关联
+  { s:"gesture",   t:"refconv" },
+  { s:"gesture",   t:"simsru" },
+  { s:"gesture",   t:"skeleton" },
+  { s:"gesture",   t:"augment" },
+  { s:"refconv",   t:"reparam" },
+  { s:"refconv",   t:"groupconv" },
+  { s:"refconv",   t:"resnext" },
+  { s:"reparam",   t:"groupconv" },
+  { s:"resnext",   t:"groupconv" },
+  { s:"attention", t:"transformer" },
+  { s:"simsru",    t:"dl_basic" },
+  { s:"coes",      t:"cot" },
+  { s:"coes",      t:"rag" },
+  { s:"coes",      t:"comet" },
+  { s:"coes",      t:"llmft" },
+  { s:"coes",      t:"esconv" },
+  { s:"esmct",     t:"mcts" },
+  { s:"esmct",     t:"cot" },
+  { s:"esmct",     t:"hillmodel" },
+  { s:"esmct",     t:"esconv" },
+  { s:"esmct",     t:"llmft" },
+  { s:"mcts",      t:"ml_basic" },
+  { s:"rag",       t:"transformer" },
+  { s:"llmft",     t:"transformer" },
+  { s:"llmft",     t:"dl_basic" },
+  // 专业课内部关联
+  { s:"ds",        t:"sort" },
+  { s:"ds",        t:"tree" },
+  { s:"ds",        t:"graph_ds" },
+  { s:"tree",      t:"sort" },
+  { s:"os",        t:"process" },
+  { s:"os",        t:"schedule" },
+  { s:"os",        t:"memory" },
+  { s:"network",   t:"tcpip" },
+  { s:"network",   t:"http" },
+  { s:"ca",        t:"cache" },
+  { s:"ca",        t:"pipeline" },
+  { s:"ml_basic",  t:"dl_basic" },
+  { s:"dl_basic",  t:"conv" },
+  { s:"dl_basic",  t:"transformer" },
+  { s:"conv",      t:"attention" },
+  // 论文↔专业课
+  { s:"refconv",   t:"conv" },
+  { s:"resnext",   t:"conv" },
+  { s:"attention", t:"dl_basic" },
+  { s:"coes",      t:"transformer" },
+  { s:"esmct",     t:"ml_basic" },
+  { s:"llmft",     t:"transformer" },
+  // 保研流程内部
+  { s:"timeline",  t:"summer" },
+  { s:"timeline",  t:"preyoumian" },
+  { s:"summer",    t:"materials" },
+  { s:"preyoumian",t:"materials" },
+  { s:"materials", t:"recom" },
+  { s:"materials", t:"gpa" },
+  { s:"materials", t:"english" },
+  { s:"materials", t:"cv" },
+  { s:"materials", t:"research_plan" },
+  { s:"contact",   t:"cv" },
+  // 面试↔其他
+  { s:"paper_talk",t:"refconv" },
+  { s:"paper_talk",t:"coes" },
+  { s:"paper_talk",t:"esmct" },
+  { s:"selfintro", t:"paper_talk" },
+  { s:"selfintro", t:"contact" },
+  { s:"qa_prep",   t:"ds" },
+  { s:"qa_prep",   t:"os" },
+  { s:"qa_prep",   t:"network" },
+  { s:"qa_prep",   t:"ml_basic" },
+  { s:"tianmei",   t:"bjtu" },
+  { s:"tianmei",   t:"attention" },
+  { s:"bjtu",      t:"contact" },
+  { s:"eng_intro", t:"selfintro" },
+  { s:"summer",    t:"selfintro" },
+  { s:"preyoumian",t:"selfintro" },
+];
+
+// ═══════════════════════════════════════════════
+// 状态管理 (localStorage)
+// ═══════════════════════════════════════════════
+const STORAGE_KEY = 'baoyuan_status';
+const NOTE_KEY    = 'baoyuan_notes';
+
+function loadStatus() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveStatus(obj) { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+function loadNotes() {
+  try { return JSON.parse(localStorage.getItem(NOTE_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveNotes(obj) { localStorage.setItem(NOTE_KEY, JSON.stringify(obj)); }
+
+let statusMap = loadStatus();
+let notesMap  = loadNotes();
+
+function getStatus(id) { return statusMap[id] || 'todo'; }
+function setStatus(id, s) {
+  statusMap[id] = s;
+  saveStatus(statusMap);
+}
+
+// ═══════════════════════════════════════════════
+// D3 图谱
+// ═══════════════════════════════════════════════
+const CAT_LABELS = { paper:'论文技术', course:'专业课(408)', process:'保研流程', interview:'面试准备' };
+const nodes = NODES.map(d => ({...d}));
+const links = EDGES.map(d => ({ source: d.s, target: d.t }));
+
+// 邻接表
+const adjSet = {};
+nodes.forEach(n => adjSet[n.id] = new Set());
+EDGES.forEach(e => { adjSet[e.s].add(e.t); adjSet[e.t].add(e.s); });
+
+const svg = d3.select('#graph');
+const width  = () => parseInt(svg.style('width'));
+const height = () => parseInt(svg.style('height'));
+
+const g = svg.append('g');
+
+// zoom
+svg.call(d3.zoom().scaleExtent([0.2, 3]).on('zoom', e => g.attr('transform', e.transform)));
+
+// 力模拟
+const sim = d3.forceSimulation(nodes)
+  .force('link',   d3.forceLink(links).id(d => d.id).distance(90).strength(0.4))
+  .force('charge', d3.forceManyBody().strength(-220))
+  .force('center', d3.forceCenter(0, 0))
+  .force('collide',d3.forceCollide(28));
+
+// 重置 center 到当前容器中心
+function recenter() {
+  sim.force('center', d3.forceCenter(width()/2, height()/2));
+  sim.alpha(0.1).restart();
+}
+window.addEventListener('resize', recenter);
+setTimeout(recenter, 100);
+
+// 边
+const linkSel = g.append('g')
+  .selectAll('line')
+  .data(links)
+  .join('line')
+  .attr('class','link');
+
+// 节点
+const nodeSel = g.append('g')
+  .selectAll('g')
+  .data(nodes)
+  .join('g')
+  .attr('class', d => `node cat-${d.cat}`)
+  .call(d3.drag()
+    .on('start', (e,d) => { if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+    .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
+    .on('end',   (e,d) => { if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
+  );
+
+nodeSel.append('circle').attr('r', d => d.cat === 'paper' ? 18 : d.cat === 'course' ? 16 : 15);
+nodeSel.append('text').text(d => d.label).attr('dy', 30).style('font-size','11px');
+
+// 模拟 tick
+sim.on('tick', () => {
+  linkSel
+    .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+  nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+});
+
+// ═══════════════════════════════════════════════
+// 状态渲染
+// ═══════════════════════════════════════════════
+function applyStatus() {
+  nodeSel.each(function(d) {
+    const s = getStatus(d.id);
+    const el = d3.select(this);
+    el.classed('mastered', s === 'mastered');
+    el.classed('learning', s === 'learning');
+    el.select('circle').classed('mastered', s === 'mastered');
+  });
+  updateDashboard();
+}
+
+function updateDashboard() {
+  const cats = ['paper','course','process','interview'];
+  const total = nodes.length;
+  const mastered = nodes.filter(n => getStatus(n.id) === 'mastered').length;
+  document.getElementById('dash-total-label').textContent = `已掌握 ${mastered} / ${total} 个知识点`;
+  document.getElementById('total-bar').style.width = (mastered/total*100).toFixed(1)+'%';
+
+  cats.forEach(cat => {
+    const group = nodes.filter(n => n.cat === cat);
+    const m = group.filter(n => getStatus(n.id) === 'mastered').length;
+    const pct = group.length ? (m/group.length*100).toFixed(0) : 0;
+    document.getElementById(`pct-${cat}`).textContent = pct+'%';
+    document.getElementById(`bar-${cat}`).style.width = pct+'%';
+  });
+}
+
+applyStatus();
+
+// ═══════════════════════════════════════════════
+// 选中节点 & 详情面板
+// ═══════════════════════════════════════════════
+let selectedId = null;
+
+function selectNode(id) {
+  selectedId = id;
+  const d = nodes.find(n => n.id === id);
+  if (!d) return;
+
+  // 高亮连接
+  const neighbors = adjSet[id];
+  nodeSel.classed('dimmed', n => n.id !== id && !neighbors.has(n.id));
+  nodeSel.classed('selected', n => n.id === id);
+  linkSel.classed('highlighted', l => l.source.id === id || l.target.id === id);
+  linkSel.classed('link', true);
+
+  // 显示面板
+  const panel = document.getElementById('detail-panel');
+  panel.classList.remove('hidden');
+  const dash = document.getElementById('dashboard');
+  dash.classList.remove('panel-hidden');
+
+  document.getElementById('detail-title').textContent = d.label;
+  document.getElementById('detail-cat-badge').textContent = CAT_LABELS[d.cat];
+  document.getElementById('detail-desc').textContent = d.desc || '';
+
+  // 关联节点 chips
+  const list = document.getElementById('detail-links-list');
+  list.innerHTML = '';
+  [...neighbors].forEach(nid => {
+    const nd = nodes.find(x => x.id === nid);
+    if (!nd) return;
+    const chip = document.createElement('div');
+    chip.className = 'link-chip';
+    chip.textContent = nd.label;
+    chip.onclick = () => selectNode(nid);
+    list.appendChild(chip);
+  });
+
+  // 笔记
+  document.getElementById('detail-note').value = notesMap[id] || '';
+
+  // 状态按钮
+  const s = getStatus(id);
+  document.querySelectorAll('.status-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.s === s);
+  });
+}
+
+function clearSelection() {
+  selectedId = null;
+  nodeSel.classed('dimmed', false).classed('selected', false);
+  linkSel.classed('highlighted', false);
+  document.getElementById('detail-panel').classList.add('hidden');
+  document.getElementById('dashboard').classList.add('panel-hidden');
+}
+
+// 点击节点
+nodeSel.on('click', (e, d) => {
+  e.stopPropagation();
+  hideCtxMenu();
+  if (selectedId === d.id) { clearSelection(); }
+  else { selectNode(d.id); }
+});
+
+// 双击切换状态
+nodeSel.on('dblclick', (e, d) => {
+  e.stopPropagation();
+  const cycle = { todo:'learning', learning:'mastered', mastered:'todo' };
+  setStatus(d.id, cycle[getStatus(d.id)]);
+  applyStatus();
+  if (selectedId === d.id) selectNode(d.id); // 刷新面板状态按钮
+});
+
+// 点击空白取消选中
+svg.on('click', () => { hideCtxMenu(); clearSelection(); });
+
+// 状态按钮
+document.querySelectorAll('.status-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!selectedId) return;
+    setStatus(selectedId, btn.dataset.s);
+    applyStatus();
+    selectNode(selectedId);
+  });
+});
+
+// 笔记自动保存
+document.getElementById('detail-note').addEventListener('input', e => {
+  if (!selectedId) return;
+  notesMap[selectedId] = e.target.value;
+  saveNotes(notesMap);
+});
+
+// ═══════════════════════════════════════════════
+// 右键菜单
+// ═══════════════════════════════════════════════
+const ctxMenu = document.getElementById('ctx-menu');
+let ctxTargetId = null;
+
+nodeSel.on('contextmenu', (e, d) => {
+  e.preventDefault();
+  e.stopPropagation();
+  ctxTargetId = d.id;
+  ctxMenu.style.display = 'block';
+  ctxMenu.style.left = e.clientX + 'px';
+  ctxMenu.style.top  = e.clientY + 'px';
+});
+
+document.querySelectorAll('.ctx-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (!ctxTargetId) return;
+    setStatus(ctxTargetId, item.dataset.s);
+    applyStatus();
+    if (selectedId === ctxTargetId) selectNode(ctxTargetId);
+    hideCtxMenu();
+  });
+});
+
+window.addEventListener('click', hideCtxMenu);
+function hideCtxMenu() { ctxMenu.style.display = 'none'; ctxTargetId = null; }
+
+// ═══════════════════════════════════════════════
+// 搜索
+// ═══════════════════════════════════════════════
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) { nodeSel.classed('dimmed', false); return; }
+  nodeSel.classed('dimmed', d => !d.label.toLowerCase().includes(q) && !d.id.toLowerCase().includes(q));
+});
+
+document.getElementById('search').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const q = e.target.value.trim().toLowerCase();
+  const found = nodes.find(n => n.label.toLowerCase().includes(q));
+  if (found) {
+    selectNode(found.id);
+    // 平移到节点
+    const t = d3.zoomTransform(svg.node());
+    const tx = width()/2 - t.k * found.x;
+    const ty = height()/2 - t.k * found.y;
+    svg.transition().duration(400).call(
+      d3.zoom().transform,
+      d3.zoomIdentity.translate(tx, ty).scale(t.k)
+    );
+  }
+});
+
+// ═══════════════════════════════════════════════
+// 截图
+// ═══════════════════════════════════════════════
+document.getElementById('btn-screenshot').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-screenshot');
+  btn.textContent = '生成中…';
+  try {
+    // 只截看板区域
+    const dash = document.getElementById('dashboard');
+    const canvas = await html2canvas(dash, { backgroundColor:'#16192a', scale:2 });
+    const a = document.createElement('a');
+    a.download = `保研进度_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.png`;
+    a.href = canvas.toDataURL();
+    a.click();
+  } catch(err) { alert('截图失败：'+err.message); }
+  btn.textContent = '📸 生成进度截图';
+});
+
+// 初始化看板位置
+document.getElementById('dashboard').classList.add('panel-hidden');
+</script>
+</body>
+</html>
