@@ -15,6 +15,13 @@
   --text2: #6b7080;
   --text3: #a0a5b8;
   --accent: #4f6ef7;
+  --algo:    #4a90e0;
+  --sys:     #7c6fe0;
+  --ai:      #5bbfdf;
+  --dev:     #43c87a;
+  --exp:     #35b5a0;
+  --survey:  #e0a83a;
+  --output:  #d9607a;
   --course: #4a8fda;
   --coding: #3db86a;
   --academic: #d4922a;
@@ -76,8 +83,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; }
 /* ── 总览卡片 ── */
 .overview-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
   margin-bottom: 32px;
 }
 .ov-card {
@@ -251,6 +258,9 @@ footer {
 }
 
 /* 响应式 */
+@media(max-width:900px) {
+  .overview-grid { grid-template-columns: repeat(4, 1fr); }
+}
 @media(max-width:700px) {
   .overview-grid { grid-template-columns:1fr 1fr; }
   header { padding:0 16px; }
@@ -297,22 +307,49 @@ footer {
     </div>
   </div>
 
-  <!-- 3个分类概览卡 -->
-  <div class="overview-grid">
+  <!-- 7个子分类概览卡 + 3个大类分组标题 -->
+  <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.5px;">📚 专业课基础</div>
+  <div class="overview-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px;">
     <div class="ov-card">
-      <div><span class="dot" style="background:var(--course)"></span><span class="cat-label">专业课基础</span></div>
-      <div class="count" id="ov-course">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-course" style="background:var(--course);width:0%"></div></div>
+      <div><span class="dot" style="background:var(--algo)"></span><span class="cat-label">算法与数据结构</span></div>
+      <div class="count" id="ov-algo">0 <span>/ 0</span></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="mb-algo" style="background:var(--algo);width:0%"></div></div>
     </div>
     <div class="ov-card">
-      <div><span class="dot" style="background:var(--coding)"></span><span class="cat-label">编程与实验</span></div>
-      <div class="count" id="ov-coding">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-coding" style="background:var(--coding);width:0%"></div></div>
+      <div><span class="dot" style="background:var(--sys)"></span><span class="cat-label">系统与网络</span></div>
+      <div class="count" id="ov-sys">0 <span>/ 0</span></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="mb-sys" style="background:var(--sys);width:0%"></div></div>
     </div>
     <div class="ov-card">
-      <div><span class="dot" style="background:var(--academic)"></span><span class="cat-label">学术素养</span></div>
-      <div class="count" id="ov-academic">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-academic" style="background:var(--academic);width:0%"></div></div>
+      <div><span class="dot" style="background:var(--ai)"></span><span class="cat-label">AI 基础</span></div>
+      <div class="count" id="ov-ai">0 <span>/ 0</span></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="mb-ai" style="background:var(--ai);width:0%"></div></div>
+    </div>
+  </div>
+  <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.5px;">💻 编程与实验</div>
+  <div class="overview-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:10px;">
+    <div class="ov-card">
+      <div><span class="dot" style="background:var(--dev)"></span><span class="cat-label">开发工具链</span></div>
+      <div class="count" id="ov-dev">0 <span>/ 0</span></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="mb-dev" style="background:var(--dev);width:0%"></div></div>
+    </div>
+    <div class="ov-card">
+      <div><span class="dot" style="background:var(--exp)"></span><span class="cat-label">实验工程</span></div>
+      <div class="count" id="ov-exp">0 <span>/ 0</span></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="mb-exp" style="background:var(--exp);width:0%"></div></div>
+    </div>
+  </div>
+  <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.5px;">🎓 学术素养</div>
+  <div class="overview-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:32px;">
+    <div class="ov-card">
+      <div><span class="dot" style="background:var(--survey)"></span><span class="cat-label">文献与调研</span></div>
+      <div class="count" id="ov-survey">0 <span>/ 0</span></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="mb-survey" style="background:var(--survey);width:0%"></div></div>
+    </div>
+    <div class="ov-card">
+      <div><span class="dot" style="background:var(--output)"></span><span class="cat-label">输出与表达</span></div>
+      <div class="count" id="ov-output">0 <span>/ 0</span></div>
+      <div class="mini-bar"><div class="mini-bar-fill" id="mb-output" style="background:var(--output);width:0%"></div></div>
     </div>
   </div>
 
@@ -341,51 +378,72 @@ footer {
 <script>
 // ── 与 graph.html 共享同一份数据 ──
 const NODES = [
-  { id:"ds",         label:"数据结构",        cat:"course",    desc:"数组、链表、栈、队列、树（二叉树/BST/AVL/红黑树/B树）、图、堆。重点：各结构的增删查时间复杂度。" },
-  { id:"sort",       label:"排序算法",        cat:"course",    desc:"快排O(nlogn)/归并O(nlogn)/堆排O(nlogn)/计数排序O(n+k)。快排最坏O(n²)，归并稳定，堆排原地。手写快排是高频面试题。" },
-  { id:"tree",       label:"二叉树",          cat:"course",    desc:"前中后序遍历（递归+迭代）、层序遍历（BFS）、BST性质、平衡树（AVL旋转）。DFS/BFS框架要能背出来。" },
-  { id:"graph_ds",   label:"图论基础",        cat:"course",    desc:"BFS/DFS、最短路(Dijkstra/Floyd)、最小生成树(Prim/Kruskal)、拓扑排序、强连通分量。" },
-  { id:"os",         label:"操作系统",        cat:"course",    desc:"进程/线程、调度算法、内存管理（分页/分段）、文件系统、I/O、死锁（四条件+银行家算法）。" },
-  { id:"process",    label:"进程与线程",      cat:"course",    desc:"进程=资源分配单位，线程=CPU调度单位。PCB结构，进程状态机(就绪/运行/阻塞)，进程通信(管道/信号/共享内存/消息队列)。" },
-  { id:"schedule",   label:"调度算法",        cat:"course",    desc:"FCFS/SJF/RR时间片轮转/优先级调度/多级反馈队列。评价指标：周转时间、等待时间、响应时间、CPU利用率。" },
-  { id:"memory",     label:"内存管理",        cat:"course",    desc:"虚拟内存、分页(页表/TLB)、分段、段页式、缺页置换(FIFO/LRU/Clock)、内存碎片。" },
-  { id:"network",    label:"计算机网络",      cat:"course",    desc:"OSI七层/TCP-IP五层模型、HTTP/HTTPS、TCP/UDP、DNS、路由协议。重点：三次握手四次挥手。" },
-  { id:"tcpip",      label:"TCP/IP",          cat:"course",    desc:"三次握手(SYN/SYN-ACK/ACK)，四次挥手(FIN/ACK/FIN/ACK)，TIME_WAIT=2MSL原因，拥塞控制(慢启动/拥塞避免/快重传/快恢复)。" },
-  { id:"http",       label:"HTTP/HTTPS",      cat:"course",    desc:"HTTP无状态协议，请求方法(GET/POST/PUT/DELETE)，状态码(2xx/3xx/4xx/5xx)。HTTPS=HTTP+TLS，非对称加密交换密钥。" },
-  { id:"ca",         label:"计算机组成原理",  cat:"course",    desc:"指令系统、CPU结构(ALU/CU/寄存器)、流水线、Cache(局部性原理/替换策略)、总线、I/O接口。" },
-  { id:"cache",      label:"Cache与存储层次", cat:"course",    desc:"L1/L2/L3 Cache，局部性原理(时间/空间)，Cache映射(直接/全相联/组相联)，写策略(写直达/写回)。" },
-  { id:"pipeline",   label:"流水线",          cat:"course",    desc:"指令流水线5段：IF/ID/EX/MEM/WB。冒险：结构冒险/数据冒险(RAW/WAR/WAW)/控制冒险。解决：停顿/转发/分支预测。" },
-  { id:"ml_basic",   label:"机器学习基础",    cat:"course",    desc:"监督/无监督/强化学习，梯度下降，损失函数，正则化(L1/L2)，过拟合/欠拟合，交叉验证，评价指标(Acc/F1/AUC)。" },
-  { id:"dl_basic",   label:"深度学习基础",    cat:"course",    desc:"BP反向传播，激活函数(ReLU/Sigmoid/Tanh)，BN批归一化，Dropout，CNN/RNN/Transformer架构对比。" },
-  { id:"conv",       label:"卷积神经网络",    cat:"course",    desc:"卷积层(卷积核/步长/填充/输出尺寸)，池化层(Max/Avg)，全连接层，经典网络：LeNet/AlexNet/VGG/ResNet/MobileNet。" },
-  { id:"transformer",label:"Transformer",     cat:"course",    desc:"Self-Attention O(n²d)，多头注意力，位置编码，Encoder-Decoder结构，LayerNorm，FFN。是CoES/ESMCT的基础架构。" },
-  // ── 编程与实验 (cat: coding) ──
-  { id:"python",      label:"Python熟练度",  cat:"coding",    desc:"列表推导式、装饰器、生成器、上下文管理器、类型注解。科研常用库：NumPy向量化操作、Pandas数据处理、Matplotlib可视化。" },
-  { id:"pytorch",     label:"PyTorch",        cat:"coding",    desc:"Tensor操作、autograd自动微分、nn.Module、DataLoader、自定义Loss。调试技巧：assert tensor.shape、中间梯度打印。" },
-  { id:"git",         label:"Git版本控制",    cat:"coding",    desc:"commit/branch/merge/rebase，GitHub协作（fork→PR→review），实验代码用分支隔离，配合.gitignore排除大文件和缓存。" },
-  { id:"linux",       label:"Linux基础",      cat:"coding",    desc:"常用命令：ls/cd/cp/mv/grep/find/ps/kill/nohup。服务器使用：ssh连接、tmux会话保持、scp传文件、环境变量配置。" },
-  { id:"server",      label:"服务器使用",     cat:"coding",    desc:"GPU资源管理(nvidia-smi/watch)，conda虚拟环境隔离，SLURM调度系统(sbatch/squeue)，训练任务后台运行(nohup/tmux)。" },
-  { id:"exp_mgmt",    label:"实验管理",       cat:"coding",    desc:"用wandb/tensorboard记录loss曲线，实验配置用yaml管理，每次实验建独立目录保存checkpoint和log，写实验记录防止遗忘。" },
-  { id:"debug",       label:"代码调试",       cat:"coding",    desc:"pdb断点调试，assert检查shape/dtype，打印中间变量验证逻辑。梯度不更新的常见原因：loss.item()截断/optimizer.zero_grad()遗漏。" },
-  { id:"env",         label:"环境配置",       cat:"coding",    desc:"conda/pip依赖管理，requirements.txt和environment.yml，CUDA版本与PyTorch版本对应，Docker容器化保证实验可复现。" },
-  // ── 学术素养 (cat: academic) ──
-  { id:"paper_search",label:"论文检索",       cat:"academic",  desc:"Google Scholar/arXiv/Semantic Scholar检索技巧，关键词组合，引用追踪，订阅顶会(CVPR/ACL/NeurIPS/ICLR)更新。" },
-  { id:"paper_read",  label:"论文精读",       cat:"academic",  desc:"三遍读法：①快扫(摘要/图表/结论)→②通读(方法和实验)→③精读(推导细节/复现)。重点看problem formulation和ablation。" },
-  { id:"field_survey",label:"领域视野",       cat:"academic",  desc:"了解方向发展脉络：经典baseline→近3年SOTA→当前open problem。用paperwithcode追踪benchmark，画技术演进时间线。" },
-  { id:"idea",        label:"想Idea",         cat:"academic",  desc:"从问题出发：现有方法局限在哪？什么假设能解决？类比其他领域方法。好idea要有motivation：为什么比baseline好。" },
-  { id:"latex",       label:"LaTeX写作",      cat:"academic",  desc:"论文写作必备：equation/figure/table/algorithm环境，biblatex参考文献，Overleaf在线协作，图表要矢量格式(.pdf/.eps)。" },
-  { id:"paper_write", label:"论文写作",       cat:"academic",  desc:"结构：Abstract→Intro→Related Work→Method→Experiments→Conclusion。先写Method和Experiments，最后写Abstract和Intro。" },
-  { id:"rebuttal",    label:"Rebuttal",       cat:"academic",  desc:"审稿意见逐条回应，态度诚恳。合理质疑：承认并补充实验；误解：礼貌澄清+指出对应文中位置。48小时内提交最优。" },
-  { id:"slides",      label:"学术报告",       cat:"academic",  desc:"组会汇报/论文展示：一页一核心点，图示优先文字，动画不花哨。讲paper：背景→问题→方法→结果→局限性，时间控制严格。" },
-  { id:"ref_mgmt",    label:"文献管理",       cat:"academic",  desc:"Zotero管理文献（分类标签+注释），导出bibtex用于LaTeX，阅读时记录：核心贡献、创新点、局限性、可借鉴方法。" },
+  // ━━ 算法与数据结构 (algo) ━━
+  { id:"ds",        label:"数据结构",       cat:"algo",   desc:"数组、链表、栈/队列、树、图、堆、哈希表。掌握每种结构的适用场景和增删查的时间复杂度，是刷题和面试的基础。" },
+  { id:"sort",      label:"排序算法",       cat:"algo",   desc:"快排O(nlogn)平均/O(n²)最坏；归并O(nlogn)稳定；堆排O(nlogn)原地不稳定；计数/基数O(n+k)非比较。手写快排是高频考点。" },
+  { id:"tree",      label:"二叉树",         cat:"algo",   desc:"前/中/后序遍历（递归+迭代模板）、层序BFS、BST（查找/插入/删除）、AVL/红黑树平衡条件。DFS递归框架要烂熟于心。" },
+  { id:"graph_ds",  label:"图算法",         cat:"algo",   desc:"BFS/DFS遍历、Dijkstra最短路（堆优化O((V+E)logV)）、Floyd全源O(V³)、Kruskal/Prim最小生成树、拓扑排序、并查集。" },
+  { id:"dp",        label:"动态规划",       cat:"algo",   desc:"状态定义→转移方程→初始化→遍历顺序。经典：背包、LCS、LIS、编辑距离。优化：滚动数组、单调队列。" },
+  { id:"complexity",label:"复杂度分析",     cat:"algo",   desc:"时间/空间大O记号，摊还分析，Master定理（分治递归分析）。能快速判断算法效率是写好代码的基本功。" },
+  { id:"hash",      label:"哈希表",         cat:"algo",   desc:"哈希函数设计、冲突解决（链地址/开放寻址）、装载因子、再哈希。Python dict / C++ unordered_map底层原理。" },
+  // ━━ 系统与网络 (sys) ━━
+  { id:"os",        label:"操作系统",       cat:"sys",    desc:"进程/线程管理、调度算法、内存管理（虚拟内存/分页/TLB）、文件系统、I/O模型、死锁（4条件+银行家算法）。" },
+  { id:"process",   label:"进程与线程",     cat:"sys",    desc:"进程=资源分配单位，线程=CPU调度单位。PCB结构、五状态转换、进程通信（管道/信号量/共享内存/消息队列）。" },
+  { id:"schedule",  label:"调度算法",       cat:"sys",    desc:"FCFS/SJF/RR时间片轮转/优先级/多级反馈队列。评价指标：CPU利用率、吞吐量、周转时间、等待时间、响应时间。" },
+  { id:"memory",    label:"内存管理",       cat:"sys",    desc:"虚拟地址空间、分页（页表/多级页表）、TLB、缺页中断、页面置换（FIFO/LRU/Clock）、内存碎片（内/外碎片）。" },
+  { id:"network",   label:"计算机网络",     cat:"sys",    desc:"OSI七层/TCP-IP四层模型，各层协议职责，子网划分/CIDR，路由协议（RIP/OSPF/BGP），HTTP/HTTPS/DNS/ARP/ICMP。" },
+  { id:"tcpip",     label:"TCP/IP",         cat:"sys",    desc:"三次握手（SYN→SYN-ACK→ACK）、四次挥手、TIME_WAIT=2MSL原因、拥塞控制（慢启动/拥塞避免/快重传/快恢复）、滑动窗口。" },
+  { id:"http",      label:"HTTP/HTTPS",     cat:"sys",    desc:"HTTP无状态、请求方法、常用状态码、Cookie/Session、HTTP2多路复用。HTTPS=TLS+HTTP，握手流程，证书链验证。" },
+  { id:"ca",        label:"计算机组成",     cat:"sys",    desc:"指令集体系结构（CISC/RISC）、CPU组成（ALU/寄存器/控制器）、总线、Cache层次结构（L1/L2/L3）、I/O接口与DMA。" },
+  { id:"cache",     label:"Cache原理",      cat:"sys",    desc:"时间/空间局部性原理、Cache映射（直接/全相联/组相联）、替换策略（LRU/随机）、写策略（写直达/写回/写分配）。" },
+  { id:"pipeline",  label:"流水线",         cat:"sys",    desc:"5级流水线（IF/ID/EX/MEM/WB）、吞吐率与加速比、流水线冒险（结构/数据/控制）、数据前递、分支预测。" },
+  // ━━ AI 基础 (ai) ━━
+  { id:"ml_basic",  label:"机器学习",       cat:"ai",     desc:"监督/无监督/强化学习范式，损失函数，梯度下降（SGD/Momentum/Adam），正则化（L1/L2/Dropout），偏差-方差分解，交叉验证。" },
+  { id:"dl_basic",  label:"深度学习",       cat:"ai",     desc:"BP反向传播（链式法则），激活函数（ReLU/GELU/Sigmoid），BatchNorm/LayerNorm，优化器（Adam/AdamW），学习率调度。" },
+  { id:"conv",      label:"CNN",            cat:"ai",     desc:"卷积核/步长/填充/输出尺寸计算，感受野，池化层，经典架构：LeNet→AlexNet→VGG→ResNet（残差连接）→EfficientNet。" },
+  { id:"rnn",       label:"RNN/LSTM",       cat:"ai",     desc:"RNN梯度消失问题，LSTM三门控（遗忘/输入/输出）+cell state，GRU简化。序列建模：NLP、时序预测。" },
+  { id:"transformer",label:"Transformer",   cat:"ai",     desc:"Scaled Dot-Product Attention，Multi-Head Attention，位置编码，Pre-LN vs Post-LN，FFN，Encoder-Decoder架构。" },
+  { id:"attention", label:"注意力机制",     cat:"ai",     desc:"Q/K/V矩阵，Self-Attention O(n²d)复杂度，Cross-Attention（Decoder中），Flash Attention等高效变种。" },
+  { id:"pretrain",  label:"预训练与微调",   cat:"ai",     desc:"BERT（MLM+NSP预训练）、GPT（自回归）、预训练→微调范式、LoRA/Adapter等参数高效微调（PEFT）方法、提示工程。" },
+  { id:"eval",      label:"评估指标",       cat:"ai",     desc:"分类：Acc/Precision/Recall/F1/AUC-ROC。检测：mAP/IoU。生成：BLEU/ROUGE/Perplexity。统计检验：配对t检验/置信区间。" },
+  // ━━ 开发工具链 (dev) ━━
+  { id:"python",    label:"Python",         cat:"dev",    desc:"列推导式、生成器、装饰器、上下文管理器、类型注解、async/await。科研常用：NumPy向量化、Pandas数据处理、Matplotlib可视化。" },
+  { id:"pytorch",   label:"PyTorch",        cat:"dev",    desc:"Tensor/autograd、nn.Module、DataLoader、自定义Loss/Optimizer。分布式训练（DDP）、混合精度（AMP）、模型序列化与加载。" },
+  { id:"git",       label:"Git",            cat:"dev",    desc:"commit/branch/merge/rebase，GitHub协作（fork→PR→code review），实验代码分支隔离，.gitignore排除大文件，Tag版本标记。" },
+  { id:"linux",     label:"Linux",          cat:"dev",    desc:"常用命令（ls/grep/find/ps/kill/chmod），Shell脚本，管道与重定向，进程管理，环境变量，cron定时，系统监控（htop/iostat）。" },
+  { id:"vscode",    label:"IDE与调试",      cat:"dev",    desc:"VSCode断点调试/pdb，远程SSH开发，Python/Jupyter扩展，代码格式化（black/flake8），快捷键与效率技巧。" },
+  // ━━ 实验工程 (exp) ━━
+  { id:"server",    label:"服务器",         cat:"exp",    desc:"GPU资源管理（nvidia-smi/watch），conda虚拟环境，SLURM调度（sbatch/squeue/scancel），tmux会话保持，scp/rsync传文件。" },
+  { id:"env",       label:"环境管理",       cat:"exp",    desc:"conda/pip/poetry依赖管理，requirements.txt和environment.yml，CUDA版本与PyTorch对应关系，Docker容器化实验复现。" },
+  { id:"exp_mgmt",  label:"实验管理",       cat:"exp",    desc:"wandb/TensorBoard记录loss/metric曲线，YAML配置文件管理超参，每次实验独立目录保存checkpoint和log，Hydra配置框架。" },
+  { id:"debug",     label:"调试技巧",       cat:"exp",    desc:"assert检查shape/dtype，打印中间梯度，梯度不更新排查（loss.item()/zero_grad遗漏），NaN/Inf追踪，数值稳定性技巧。" },
+  { id:"repro",     label:"可复现性",       cat:"exp",    desc:"固定随机种子（torch/numpy/random），记录硬件与软件版本，代码+数据+config一同存档，Dockerfile保证跨机器一致性。" },
+  { id:"data_proc", label:"数据处理",       cat:"exp",    desc:"数据清洗与预处理，DataLoader自定义collate_fn，数据增强策略，不平衡数据采样（over/under sampling）。" },
+  // ━━ 文献与调研 (survey) ━━
+  { id:"paper_search", label:"论文检索",    cat:"survey", desc:"Google Scholar/arXiv/Semantic Scholar，关键词组合策略，引用追踪（引用了谁/被谁引）。订阅顶会alert（CVPR/NeurIPS/ACL/ICLR）。" },
+  { id:"paper_read",   label:"论文精读",    cat:"survey", desc:"三遍读法：①快扫（摘要/图表/结论判断值不值）→②通读（理解方法和实验）→③精读（推导细节/复现关键实验）。重点看ablation study。" },
+  { id:"field_survey", label:"领域调研",    cat:"survey", desc:"梳理方向发展脉络：经典baseline→近3年SOTA→当前open problem。用Papers with Code追踪benchmark，画技术演进时间线。" },
+  { id:"ref_mgmt",     label:"文献管理",    cat:"survey", desc:"Zotero分类标签+注释，导出bibtex，阅读时记录：核心贡献/创新点/局限性/可借鉴方法。Connected Papers图谱关联分析。" },
+  { id:"idea",         label:"想Idea",      cat:"survey", desc:"从gap出发：现有方法哪里做不好？什么假设能解决？类比其他领域方法迁移。好idea要有strong motivation：为什么这样设计比baseline好？" },
+  // ━━ 输出与表达 (output) ━━
+  { id:"latex",       label:"LaTeX",        cat:"output", desc:"equation/figure/table/algorithm环境，biblatex/natbib参考文献，Overleaf在线协作，图表用矢量格式（.pdf/.eps）。" },
+  { id:"paper_write", label:"论文写作",     cat:"output", desc:"结构：Abstract→Intro→Related Work→Method→Experiments→Conclusion。写作顺序：先Method+Experiments，后Intro+Abstract，每句话有且只有一个作用。" },
+  { id:"rebuttal",    label:"Rebuttal",     cat:"output", desc:"审稿意见逐条回应，态度诚恳专业。对合理质疑：承认局限并补充实验；对误解：礼貌澄清+指向文中对应位置。" },
+  { id:"slides",      label:"学术报告",     cat:"output", desc:"一页一核心点，图示优于文字，动画克制。讲paper结构：背景→问题→方法→结果→局限性。组会汇报时间控制，预留Q&A。" },
+  { id:"poster",      label:"学术海报",     cat:"output", desc:"竖版/横版A0，3分钟电梯演讲配合。模块：贡献摘要/方法图/核心实验结果。视觉层次清晰，远处可读主标题，近处可读细节。" },
+  { id:"writing_en",  label:"英文写作",     cat:"output", desc:"学术英语规范：避免口语化，时态一致（过去式描述实验/现在式描述结论），精确用词，Grammarly辅助校对。" },
 ];
 
 const CAT_META = {
-  course:   { label:'专业课基础',  color:'var(--course)',   ov:'ov-course',   mb:'mb-course'   },
-  coding:   { label:'编程与实验',  color:'var(--coding)',   ov:'ov-coding',   mb:'mb-coding'   },
-  academic: { label:'学术素养',    color:'var(--academic)', ov:'ov-academic', mb:'mb-academic' },
+  algo:   { label:'算法与数据结构', color:'var(--algo)',    ov:'ov-algo',    mb:'mb-algo'   },
+  sys:    { label:'系统与网络',     color:'var(--sys)',     ov:'ov-sys',     mb:'mb-sys'    },
+  ai:     { label:'AI基础',         color:'var(--ai)',      ov:'ov-ai',      mb:'mb-ai'     },
+  dev:    { label:'开发工具链',     color:'var(--dev)',     ov:'ov-dev',     mb:'mb-dev'    },
+  exp:    { label:'实验工程',       color:'var(--exp)',     ov:'ov-exp',     mb:'mb-exp'    },
+  survey: { label:'文献与调研',     color:'var(--survey)',  ov:'ov-survey',  mb:'mb-survey' },
+  output: { label:'输出与表达',     color:'var(--output)',  ov:'ov-output',  mb:'mb-output' },
 };
-const CAT_ORDER = ['course','coding','academic'];
+const CAT_ORDER = ['algo','sys','ai','dev','exp','survey','output'];
 const STATUS_LABELS = { todo:'未学', learning:'学习中', mastered:'已掌握' };
 
 // ── 状态 & 笔记 ──
