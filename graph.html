@@ -182,10 +182,6 @@ svg { width:100%; height:100%; }
     <div id="dash-total-label">加载中…</div>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="total-bar" style="width:0%"></div></div>
     <div class="cat-progress">
-      <div class="cat-progress-label">🔴 论文技术 <span id="pct-paper">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-paper" id="bar-paper" style="width:0%"></div></div>
-    </div>
-    <div class="cat-progress">
       <div class="cat-progress-label">🔵 专业课基础 <span id="pct-course">0%</span></div>
       <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-course" id="bar-course" style="width:0%"></div></div>
     </div>
@@ -201,7 +197,6 @@ svg { width:100%; height:100%; }
   </div>
 
   <div id="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#e05a6e"></div>论文技术</div>
     <div class="legend-item"><div class="legend-dot" style="background:#5a9ee0"></div>专业课基础</div>
     <div class="legend-item"><div class="legend-dot" style="background:#5ac97a"></div>编程与实验</div>
     <div class="legend-item"><div class="legend-dot" style="background:#e0b85a"></div>学术素养</div>
@@ -248,27 +243,7 @@ svg { width:100%; height:100%; }
 // 数据定义
 // ═══════════════════════════════════════════════
 const NODES = [
-  // ── 论文技术 (cat: paper) ──
-  { id:"gesture",    label:"手势识别",       cat:"paper",     desc:"基于视频序列的手部姿态估计，人机互动游戏场景，输入为RGB图像序列，输出为手部关键点坐标及手势类别。" },
-  { id:"refconv",    label:"RefConv",         cat:"paper",     desc:"可重参数化的引用卷积。训练时用多分支结构（Wb基础权重+Wr可学习残差），推理时合并为单卷积，解决分组卷积组间无交互的问题。" },
-  { id:"simsru",     label:"SimSRU",          cat:"paper",     desc:"简化循环单元，用于时序建模，相比标准RNN参数更少、训练更快，在手势序列分类中替代LSTM。" },
-  { id:"reparam",    label:"重参数化卷积",    cat:"paper",     desc:"训练时多分支（不同感受野）→推理时合并为单卷积。核心是等价变换：串联→卷积合并，并联→权重相加。代表工作：RepVGG, ACNet。" },
-  { id:"groupconv",  label:"分组卷积",        cat:"paper",     desc:"将输入通道分成G组独立卷积，减少参数量。问题：不同组之间缺乏信息交互，RefConv正是为解决这个问题设计的。" },
-  { id:"attention",  label:"注意力机制",      cat:"paper",     desc:"模型自动学习输入不同部分的重要性权重。Self-Attention: Q/K/V矩阵；空间注意力：CBAM, SE；通道注意力。" },
-  { id:"augment",    label:"数据增强",        cat:"paper",     desc:"在线数据增强：随机裁剪、翻转、色彩抖动，在训练时实时生成，避免存储膨胀。论文1中用于抵消RefConv引入额外参数的过拟合风险。" },
-  { id:"resnext",    label:"ResNeXt",         cat:"paper",     desc:"ResNet变体，引入分组卷积+跳跃连接。每个残差块包含并行分组卷积，width×groups决定模型容量。RefConv基于此设计。" },
-  { id:"skeleton",   label:"骨骼关键点检测",  cat:"paper",     desc:"检测手部21个关键点，用于手势识别前处理。使用热力图回归（heatmap regression）方法，每个关键点对应一张高斯热力图。" },
-  { id:"coes",       label:"CoES",            cat:"paper",     desc:"Chain-of-Emotional-Support，三段推理链：①情绪推理(s→e→i)②策略推理(thought→stage→strategy，含2阶段RAG)③回复生成(原始→反思→修订)。" },
-  { id:"esmct",      label:"ESMCT",           cat:"paper",     desc:"情绪支持蒙特卡洛树。将对话建模为MDP，5种LLM角色协作，PUCT公式选节点，多目标奖励函数含阶段感知动态权重λ=t/T。" },
-  { id:"cot",        label:"链式思维CoT",     cat:"paper",     desc:"让LLM生成推理步骤再给出答案，显著提升复杂推理准确率。CoES的核心机制，每个推理链都是一个CoT实例。" },
-  { id:"mcts",       label:"MCTS",            cat:"paper",     desc:"蒙特卡洛树搜索：选择(PUCT)→扩展→模拟→回传。ESMCT将其适配到对话规划，节点为(对话历史,情绪状态,目标状态)。" },
-  { id:"rag",        label:"RAG检索增强",     cat:"paper",     desc:"Retrieval-Augmented Generation。CoES中2阶段：①Sentence-BERT+Chroma向量库按情境相似度检索→②话语相似度精排。" },
-  { id:"comet",      label:"COMET知识库",     cat:"paper",     desc:"常识知识库，5种关系(xReact,xWant,xNeed,xIntent,xEffect)。CoES用DeBERTa过滤低质量条目后注入情绪推理链。" },
-  { id:"llmft",      label:"大语言模型微调",  cat:"paper",     desc:"指令微调(instruction tuning)。论文2用4-bit量化+单张RTX 4090，测试了llama2-7b/llama3-8b/mistral-7b/gemma-7b，temperature=0.95。" },
-  { id:"esconv",     label:"ESConv数据集",    cat:"paper",     desc:"情绪支持对话数据集，1300条对话，8种支持策略。论文2：195条测试集，1105条作为RAG检索库。" },
-  { id:"hillmodel",  label:"Hill三阶段模型",  cat:"paper",     desc:"心理咨询理论：探索(Exploration)→安慰(Comfort)→行动(Action)。ESMCT的阶段感知权重基于此，早期探索权重高，后期行动权重高。" },
-
-  // ── 专业课 (cat: course) ──
+  // ── 专业课基础 (cat: course) ──
   { id:"ds",       label:"数据结构",       cat:"course",    desc:"数组、链表、栈、队列、树（二叉树/BST/AVL/红黑树/B树）、图、堆。重点：各结构的增删查时间复杂度。" },
   { id:"sort",     label:"排序算法",       cat:"course",    desc:"快排O(nlogn)/归并O(nlogn)/堆排O(nlogn)/计数排序O(n+k)。快排最坏O(n²)，归并稳定，堆排原地。手写快排是高频面试题。" },
   { id:"tree",     label:"二叉树",         cat:"course",    desc:"前中后序遍历（递归+迭代）、层序遍历（BFS）、BST性质、平衡树（AVL旋转）。DFS/BFS框架要能背出来。" },
@@ -311,32 +286,6 @@ const NODES = [
 ];
 
 const EDGES = [
-  // 论文技术内部关联
-  { s:"gesture",      t:"refconv" },
-  { s:"gesture",      t:"simsru" },
-  { s:"gesture",      t:"skeleton" },
-  { s:"gesture",      t:"augment" },
-  { s:"refconv",      t:"reparam" },
-  { s:"refconv",      t:"groupconv" },
-  { s:"refconv",      t:"resnext" },
-  { s:"reparam",      t:"groupconv" },
-  { s:"resnext",      t:"groupconv" },
-  { s:"attention",    t:"transformer" },
-  { s:"simsru",       t:"dl_basic" },
-  { s:"coes",         t:"cot" },
-  { s:"coes",         t:"rag" },
-  { s:"coes",         t:"comet" },
-  { s:"coes",         t:"llmft" },
-  { s:"coes",         t:"esconv" },
-  { s:"esmct",        t:"mcts" },
-  { s:"esmct",        t:"cot" },
-  { s:"esmct",        t:"hillmodel" },
-  { s:"esmct",        t:"esconv" },
-  { s:"esmct",        t:"llmft" },
-  { s:"mcts",         t:"ml_basic" },
-  { s:"rag",          t:"transformer" },
-  { s:"llmft",        t:"transformer" },
-  { s:"llmft",        t:"dl_basic" },
   // 专业课内部关联
   { s:"ds",           t:"sort" },
   { s:"ds",           t:"tree" },
@@ -353,13 +302,6 @@ const EDGES = [
   { s:"dl_basic",     t:"conv" },
   { s:"dl_basic",     t:"transformer" },
   { s:"conv",         t:"attention" },
-  // 论文↔专业课
-  { s:"refconv",      t:"conv" },
-  { s:"resnext",      t:"conv" },
-  { s:"attention",    t:"dl_basic" },
-  { s:"coes",         t:"transformer" },
-  { s:"esmct",        t:"ml_basic" },
-  { s:"llmft",        t:"transformer" },
   // 编程与实验内部关联
   { s:"pytorch",      t:"python" },
   { s:"server",       t:"linux" },
@@ -368,12 +310,14 @@ const EDGES = [
   { s:"debug",        t:"pytorch" },
   { s:"env",          t:"linux" },
   { s:"env",          t:"server" },
-  // 编程↔论文技术 & 专业课
+  // 编程↔专业课
   { s:"pytorch",      t:"dl_basic" },
   { s:"pytorch",      t:"conv" },
   { s:"pytorch",      t:"transformer" },
   { s:"exp_mgmt",     t:"ml_basic" },
   { s:"python",       t:"ml_basic" },
+  // 学术↔专业课
+  { s:"field_survey", t:"transformer" },
   // 学术素养内部关联
   { s:"paper_read",   t:"paper_search" },
   { s:"field_survey", t:"paper_read" },
@@ -383,13 +327,6 @@ const EDGES = [
   { s:"rebuttal",     t:"paper_write" },
   { s:"slides",       t:"paper_write" },
   { s:"ref_mgmt",     t:"paper_search" },
-  // 学术↔论文技术
-  { s:"paper_read",   t:"coes" },
-  { s:"paper_read",   t:"refconv" },
-  { s:"idea",         t:"rag" },
-  { s:"idea",         t:"mcts" },
-  { s:"paper_write",  t:"coes" },
-  { s:"field_survey", t:"transformer" },
   // 学术↔编程
   { s:"exp_mgmt",     t:"paper_write" },
   { s:"debug",        t:"idea" },
@@ -424,7 +361,7 @@ function setStatus(id, s) {
 // ═══════════════════════════════════════════════
 // D3 图谱
 // ═══════════════════════════════════════════════
-const CAT_LABELS = { paper:'论文技术', course:'专业课基础', coding:'编程与实验', academic:'学术素养' };
+const CAT_LABELS = { course:'专业课基础', coding:'编程与实验', academic:'学术素养' };
 const nodes = NODES.map(d => ({...d}));
 const links = EDGES.map(d => ({ source: d.s, target: d.t }));
 
@@ -502,7 +439,7 @@ function applyStatus() {
 }
 
 function updateDashboard() {
-  const cats = ['paper','course','coding','academic'];
+  const cats = ['course','coding','academic'];
   const total = nodes.length;
   const mastered = nodes.filter(n => getStatus(n.id) === 'mastered').length;
   document.getElementById('dash-total-label').textContent = `已掌握 ${mastered} / ${total} 个知识点`;

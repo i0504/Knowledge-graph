@@ -15,7 +15,6 @@
   --text2: #6b7080;
   --text3: #a0a5b8;
   --accent: #4f6ef7;
-  --paper: #e05a6e;
   --course: #4a8fda;
   --coding: #3db86a;
   --academic: #d4922a;
@@ -298,13 +297,8 @@ footer {
     </div>
   </div>
 
-  <!-- 4个分类概览卡 -->
+  <!-- 3个分类概览卡 -->
   <div class="overview-grid">
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--paper)"></span><span class="cat-label">论文技术</span></div>
-      <div class="count" id="ov-paper">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-paper" style="background:var(--paper);width:0%"></div></div>
-    </div>
     <div class="ov-card">
       <div><span class="dot" style="background:var(--course)"></span><span class="cat-label">专业课基础</span></div>
       <div class="count" id="ov-course">0 <span>/ 0</span></div>
@@ -347,24 +341,6 @@ footer {
 <script>
 // ── 与 graph.html 共享同一份数据 ──
 const NODES = [
-  { id:"gesture",    label:"手势识别",       cat:"paper",     desc:"基于视频序列的手部姿态估计，人机互动游戏场景，输入为RGB图像序列，输出为手部关键点坐标及手势类别。" },
-  { id:"refconv",    label:"RefConv",         cat:"paper",     desc:"可重参数化的引用卷积。训练时用多分支结构（Wb基础权重+Wr可学习残差），推理时合并为单卷积，解决分组卷积组间无交互的问题。" },
-  { id:"simsru",     label:"SimSRU",          cat:"paper",     desc:"简化循环单元，用于时序建模，相比标准RNN参数更少、训练更快，在手势序列分类中替代LSTM。" },
-  { id:"reparam",    label:"重参数化卷积",    cat:"paper",     desc:"训练时多分支（不同感受野）→推理时合并为单卷积。核心是等价变换：串联→卷积合并，并联→权重相加。代表工作：RepVGG, ACNet。" },
-  { id:"groupconv",  label:"分组卷积",        cat:"paper",     desc:"将输入通道分成G组独立卷积，减少参数量。问题：不同组之间缺乏信息交互，RefConv正是为解决这个问题设计的。" },
-  { id:"attention",  label:"注意力机制",      cat:"paper",     desc:"模型自动学习输入不同部分的重要性权重。Self-Attention: Q/K/V矩阵；空间注意力：CBAM, SE；通道注意力。" },
-  { id:"augment",    label:"数据增强",        cat:"paper",     desc:"在线数据增强：随机裁剪、翻转、色彩抖动，在训练时实时生成，避免存储膨胀。论文1用于抵消RefConv引入额外参数的过拟合风险。" },
-  { id:"resnext",    label:"ResNeXt",         cat:"paper",     desc:"ResNet变体，引入分组卷积+跳跃连接。每个残差块包含并行分组卷积，width×groups决定模型容量。RefConv基于此设计。" },
-  { id:"skeleton",   label:"骨骼关键点检测",  cat:"paper",     desc:"检测手部21个关键点，用于手势识别前处理。使用热力图回归（heatmap regression）方法，每个关键点对应一张高斯热力图。" },
-  { id:"coes",       label:"CoES",            cat:"paper",     desc:"Chain-of-Emotional-Support，三段推理链：①情绪推理(s→e→i)②策略推理(thought→stage→strategy，含2阶段RAG)③回复生成(原始→反思→修订)。" },
-  { id:"esmct",      label:"ESMCT",           cat:"paper",     desc:"情绪支持蒙特卡洛树。将对话建模为MDP，5种LLM角色协作，PUCT公式选节点，多目标奖励函数含阶段感知动态权重λ=t/T。" },
-  { id:"cot",        label:"链式思维CoT",     cat:"paper",     desc:"让LLM生成推理步骤再给出答案，显著提升复杂推理准确率。CoES的核心机制，每个推理链都是一个CoT实例。" },
-  { id:"mcts",       label:"MCTS",            cat:"paper",     desc:"蒙特卡洛树搜索：选择(PUCT)→扩展→模拟→回传。ESMCT将其适配到对话规划，节点为(对话历史,情绪状态,目标状态)。" },
-  { id:"rag",        label:"RAG检索增强",     cat:"paper",     desc:"Retrieval-Augmented Generation。CoES中2阶段：①Sentence-BERT+Chroma向量库按情境相似度检索→②话语相似度精排。" },
-  { id:"comet",      label:"COMET知识库",     cat:"paper",     desc:"常识知识库，5种关系(xReact,xWant,xNeed,xIntent,xEffect)。CoES用DeBERTa过滤低质量条目后注入情绪推理链。" },
-  { id:"llmft",      label:"大语言模型微调",  cat:"paper",     desc:"指令微调(instruction tuning)。论文2用4-bit量化+单张RTX 4090，测试了llama2-7b/llama3-8b/mistral-7b/gemma-7b，temperature=0.95。" },
-  { id:"esconv",     label:"ESConv数据集",    cat:"paper",     desc:"情绪支持对话数据集，1300条对话，8种支持策略。论文2：195条测试集，1105条作为RAG检索库。" },
-  { id:"hillmodel",  label:"Hill三阶段模型",  cat:"paper",     desc:"心理咨询理论：探索(Exploration)→安慰(Comfort)→行动(Action)。ESMCT的阶段感知权重基于此，早期探索权重高，后期行动权重高。" },
   { id:"ds",         label:"数据结构",        cat:"course",    desc:"数组、链表、栈、队列、树（二叉树/BST/AVL/红黑树/B树）、图、堆。重点：各结构的增删查时间复杂度。" },
   { id:"sort",       label:"排序算法",        cat:"course",    desc:"快排O(nlogn)/归并O(nlogn)/堆排O(nlogn)/计数排序O(n+k)。快排最坏O(n²)，归并稳定，堆排原地。手写快排是高频面试题。" },
   { id:"tree",       label:"二叉树",          cat:"course",    desc:"前中后序遍历（递归+迭代）、层序遍历（BFS）、BST性质、平衡树（AVL旋转）。DFS/BFS框架要能背出来。" },
@@ -405,12 +381,11 @@ const NODES = [
 ];
 
 const CAT_META = {
-  paper:    { label:'论文技术',    color:'var(--paper)',    ov:'ov-paper',    mb:'mb-paper'    },
   course:   { label:'专业课基础',  color:'var(--course)',   ov:'ov-course',   mb:'mb-course'   },
   coding:   { label:'编程与实验',  color:'var(--coding)',   ov:'ov-coding',   mb:'mb-coding'   },
   academic: { label:'学术素养',    color:'var(--academic)', ov:'ov-academic', mb:'mb-academic' },
 };
-const CAT_ORDER = ['paper','course','coding','academic'];
+const CAT_ORDER = ['course','coding','academic'];
 const STATUS_LABELS = { todo:'未学', learning:'学习中', mastered:'已掌握' };
 
 // ── 状态 & 笔记 ──
