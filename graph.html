@@ -8,158 +8,173 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'PingFang SC','Microsoft YaHei',sans-serif; background:#0f1117; color:#e0e0e0; overflow:hidden; height:100vh; display:flex; }
+body { font-family: 'PingFang SC','Microsoft YaHei',sans-serif; background:#0a0c14; color:#e0e0e0; overflow:hidden; height:100vh; display:flex; }
 
 /* ── 图谱区 ── */
 #graph-area { flex:1; position:relative; }
 svg { width:100%; height:100%; }
 
 /* 边 */
-.link { stroke:#333; stroke-opacity:0.5; stroke-width:1.5; }
-.link.highlighted { stroke:#7b8cde; stroke-opacity:0.9; stroke-width:2.5; }
+.link { stroke:#252836; stroke-opacity:0.6; stroke-width:1.2; }
+.link.strong  { stroke-width:2; stroke-opacity:0.75; }
+.link.highlighted { stroke:#8899ff; stroke-opacity:1; stroke-width:2.5; }
 
 /* 节点圆 */
 .node circle {
-  stroke:#1a1d27; stroke-width:2;
+  stroke:#0a0c14; stroke-width:2;
   cursor:pointer; transition: r 0.15s, filter 0.15s;
-  filter: brightness(0.75);
+  filter: brightness(0.65) saturate(0.7);
 }
-.node circle.mastered  { filter: brightness(1.1) drop-shadow(0 0 6px currentColor); }
-.node circle.learning  { filter: brightness(0.9); }
-.node circle.dimmed    { filter: brightness(0.25); }
-.node text { font-size:11px; fill:#ccc; pointer-events:none; text-anchor:middle; dominant-baseline:central; user-select:none; }
-.node.selected circle { stroke:#fff; stroke-width:2.5; }
+.node circle.mastered { filter: brightness(1.15) saturate(1.2) drop-shadow(0 0 7px currentColor); }
+.node circle.learning { filter: brightness(0.88) saturate(1); }
+.node circle.dimmed   { filter: brightness(0.2) saturate(0.2); opacity:0.4; }
+.node text {
+  font-size:10.5px; fill:#b8bcd0; pointer-events:none;
+  text-anchor:middle; dominant-baseline:central; user-select:none;
+}
+.node.anchor text { font-size:11.5px; fill:#d8dce8; font-weight:600; }
+.node.selected circle { stroke:#ffffff; stroke-width:2.5; }
+.node.learning circle { stroke:#ffe066; stroke-width:2; }
 
-/* 分类颜色 */
-.cat-paper    circle { fill:#e05a6e; }
-.cat-course   circle { fill:#5a9ee0; }
-.cat-coding   circle { fill:#5ac97a; }
-.cat-academic circle { fill:#e0b85a; }
+/* ── 7 子分类颜色 ──
+   course系: algo=#4a90e0蓝, sys=#7c6fe0紫, ai=#5bbfdf青蓝
+   coding系: dev=#43c87a绿, exp=#35b5a0青
+   academic系: survey=#e0a83a橙, output=#e06060红粉
+*/
+.cat-algo     circle { fill:#4a90e0; }
+.cat-sys      circle { fill:#7c6fe0; }
+.cat-ai       circle { fill:#5bbfdf; }
+.cat-dev      circle { fill:#43c87a; }
+.cat-exp      circle { fill:#35b5a0; }
+.cat-survey   circle { fill:#e0a83a; }
+.cat-output   circle { fill:#d9607a; }
 
-/* 状态叠加色 */
-.cat-paper.mastered    circle { fill:#ff8fa0; }
-.cat-course.mastered   circle { fill:#7ab8f5; }
-.cat-coding.mastered   circle { fill:#7ae09a; }
-.cat-academic.mastered circle { fill:#f5cf7a; }
-
-/* 学习中节点描边 */
-.node.learning circle { stroke:#ffe066; stroke-width:2.5; }
+/* mastered 亮色 */
+.cat-algo.mastered    circle { fill:#6aaaf5; }
+.cat-sys.mastered     circle { fill:#a090f8; }
+.cat-ai.mastered      circle { fill:#7ad8f0; }
+.cat-dev.mastered     circle { fill:#65df96; }
+.cat-exp.mastered     circle { fill:#55d0bc; }
+.cat-survey.mastered  circle { fill:#f5c05a; }
+.cat-output.mastered  circle { fill:#f07898; }
 
 /* ── 右侧详情面板 ── */
 #detail-panel {
-  width:300px; height:100vh; background:#16192a; border-left:1px solid #2a2d3e;
+  width:290px; height:100vh; background:#121520; border-left:1px solid #1e2235;
   display:flex; flex-direction:column; overflow:hidden;
   transition: transform 0.25s;
 }
-#detail-panel.hidden { transform: translateX(300px); position:absolute; right:0; }
+#detail-panel.hidden { transform: translateX(290px); position:absolute; right:0; }
 #detail-header {
-  padding:18px 16px 12px; border-bottom:1px solid #2a2d3e;
-  display:flex; align-items:flex-start; gap:10px;
+  padding:16px 14px 10px; border-bottom:1px solid #1e2235;
 }
-#detail-title { font-size:17px; font-weight:600; flex:1; line-height:1.4; }
+#detail-title { font-size:16px; font-weight:700; line-height:1.4; margin-bottom:5px; }
 #detail-cat-badge {
-  font-size:10px; padding:2px 8px; border-radius:10px; white-space:nowrap;
-  background:#2a2d3e; color:#aaa; margin-top:3px;
+  display:inline-block; font-size:10px; padding:2px 9px; border-radius:10px;
+  background:#1e2235; color:#8899aa; letter-spacing:0.5px;
 }
-#detail-body { flex:1; overflow-y:auto; padding:14px 16px; }
-#detail-desc { font-size:13px; color:#b0b0c0; line-height:1.7; margin-bottom:14px; }
-#detail-links h4 { font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
-#detail-links-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+#detail-body { flex:1; overflow-y:auto; padding:12px 14px; }
+#detail-desc { font-size:12.5px; color:#909ab8; line-height:1.75; margin-bottom:14px; }
+#detail-links h4 { font-size:10px; color:#444; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:7px; }
+#detail-links-list { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:16px; }
 .link-chip {
-  font-size:11px; padding:3px 10px; border-radius:12px;
-  background:#1e2235; border:1px solid #2a2d3e; color:#9ab; cursor:pointer;
-  transition: background 0.15s;
-}
-.link-chip:hover { background:#2a2d3e; color:#dde; }
-#detail-note-label { font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-#detail-note {
-  width:100%; min-height:100px; background:#1e2235; border:1px solid #2a2d3e;
-  border-radius:6px; color:#ccc; font-size:13px; padding:8px 10px;
-  resize:vertical; font-family:inherit; line-height:1.6;
-}
-#detail-note:focus { outline:none; border-color:#5a6a9e; }
-#detail-footer { padding:12px 16px; border-top:1px solid #2a2d3e; }
-.status-btns { display:flex; gap:6px; }
-.status-btn {
-  flex:1; padding:7px 0; border-radius:6px; font-size:12px; font-weight:500;
-  border:1px solid #2a2d3e; background:#1e2235; color:#888; cursor:pointer;
+  font-size:11px; padding:3px 10px; border-radius:11px;
+  background:#1a1e30; border:1px solid #252836; color:#8899bb; cursor:pointer;
   transition: all 0.15s;
 }
-.status-btn:hover { border-color:#5a6a9e; color:#ccc; }
-.status-btn.active { border-color:currentColor; }
-.status-btn.active.s-todo    { color:#666; background:#1e2235; }
-.status-btn.active.s-learning { color:#ffe066; background:#2a2510; border-color:#ffe066; }
-.status-btn.active.s-mastered { color:#5ac97a; background:#102018; border-color:#5ac97a; }
+.link-chip:hover { background:#252c44; color:#ccd; border-color:#4455aa; }
+#detail-note-label { font-size:10px; color:#444; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; }
+#detail-note {
+  width:100%; min-height:90px; background:#1a1e30; border:1px solid #252836;
+  border-radius:6px; color:#bbc; font-size:12.5px; padding:8px 10px;
+  resize:vertical; font-family:inherit; line-height:1.65;
+}
+#detail-note:focus { outline:none; border-color:#4a5a9e; }
+#detail-footer { padding:10px 14px; border-top:1px solid #1e2235; }
+.status-btns { display:flex; gap:5px; }
+.status-btn {
+  flex:1; padding:7px 0; border-radius:6px; font-size:11.5px; font-weight:500;
+  border:1px solid #252836; background:#1a1e30; color:#666; cursor:pointer;
+  transition: all 0.15s;
+}
+.status-btn:hover { border-color:#4a5a9e; color:#bbc; }
+.status-btn.active.s-todo     { color:#555; background:#16192a; }
+.status-btn.active.s-learning { color:#ffe066; background:#231f00; border-color:#ffe066; }
+.status-btn.active.s-mastered { color:#43c87a; background:#0a1a10; border-color:#43c87a; }
 
 /* ── 右上角看板 ── */
 #dashboard {
-  position:absolute; top:16px; right:316px; width:240px;
-  background:#16192a; border:1px solid #2a2d3e; border-radius:10px;
-  padding:14px; z-index:10;
+  position:absolute; top:14px; right:305px; width:228px;
+  background:#12152088; backdrop-filter:blur(8px);
+  border:1px solid #1e2235; border-radius:10px;
+  padding:13px; z-index:10;
+  transition: right 0.25s;
 }
-#dashboard.panel-hidden { right:16px; }
-#dash-title { font-size:12px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
-#dash-total-label { font-size:13px; color:#ccc; margin-bottom:5px; }
-.progress-bar-wrap { background:#1e2235; border-radius:4px; height:6px; margin-bottom:12px; overflow:hidden; }
-.progress-bar-fill { height:100%; border-radius:4px; background:#5ac97a; transition: width 0.4s; }
-.cat-progress { margin-bottom:8px; }
-.cat-progress-label { font-size:11px; color:#888; margin-bottom:3px; display:flex; justify-content:space-between; }
-.cat-progress-label span { color:#555; }
-.cat-bar-wrap { background:#1e2235; border-radius:3px; height:4px; overflow:hidden; }
+#dashboard.panel-hidden { right:14px; }
+#dash-title { font-size:10px; color:#44475a; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:9px; }
+#dash-total-label { font-size:12.5px; color:#bbc; margin-bottom:5px; }
+.progress-bar-wrap { background:#1a1e30; border-radius:4px; height:5px; margin-bottom:11px; overflow:hidden; }
+.progress-bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#43c87a,#5bbfdf); transition: width 0.4s; }
+.cat-group-label { font-size:9.5px; color:#333; text-transform:uppercase; letter-spacing:1px; margin:8px 0 4px; padding-top:6px; border-top:1px solid #1a1e30; }
+.cat-progress { margin-bottom:6px; }
+.cat-progress-label { font-size:10.5px; color:#666; margin-bottom:2px; display:flex; justify-content:space-between; }
+.cat-progress-label span { color:#444; }
+.cat-bar-wrap { background:#1a1e30; border-radius:3px; height:3px; overflow:hidden; }
 .cat-bar-fill { height:100%; border-radius:3px; transition: width 0.4s; }
-.cat-bar-paper   { background:#e05a6e; }
-.cat-bar-course  { background:#5a9ee0; }
-.cat-bar-coding  { background:#5ac97a; }
-.cat-bar-academic { background:#e0b85a; }
+.cat-bar-algo    { background:#4a90e0; }
+.cat-bar-sys     { background:#7c6fe0; }
+.cat-bar-ai      { background:#5bbfdf; }
+.cat-bar-dev     { background:#43c87a; }
+.cat-bar-exp     { background:#35b5a0; }
+.cat-bar-survey  { background:#e0a83a; }
+.cat-bar-output  { background:#d9607a; }
 #btn-screenshot {
-  width:100%; margin-top:10px; padding:7px 0; border-radius:6px;
-  background:#1e2235; border:1px solid #2a2d3e; color:#9ab;
-  font-size:12px; cursor:pointer; transition: all 0.15s;
+  width:100%; margin-top:9px; padding:6px 0; border-radius:6px;
+  background:#1a1e30; border:1px solid #252836; color:#7788aa;
+  font-size:11px; cursor:pointer; transition: all 0.15s;
 }
-#btn-screenshot:hover { background:#2a3050; color:#ccd; border-color:#5a6a9e; }
+#btn-screenshot:hover { background:#222840; color:#aabbcc; border-color:#4455aa; }
 
 /* ── 左上角标题 ── */
-#header {
-  position:absolute; top:16px; left:16px; z-index:10;
-}
-#header h1 { font-size:18px; font-weight:700; color:#eee; letter-spacing:0.5px; }
-#header p  { font-size:11px; color:#555; margin-top:3px; }
+#header { position:absolute; top:14px; left:14px; z-index:10; }
+#header h1 { font-size:17px; font-weight:700; color:#dde; letter-spacing:0.5px; }
+#header p  { font-size:10.5px; color:#44475a; margin-top:3px; }
 
 /* ── 图例 ── */
 #legend {
-  position:absolute; bottom:16px; left:16px; z-index:10;
-  display:flex; gap:14px; align-items:center;
+  position:absolute; bottom:14px; left:14px; z-index:10;
+  display:flex; flex-wrap:wrap; gap:10px 16px; max-width:700px; align-items:center;
 }
-.legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#666; }
-.legend-dot { width:9px; height:9px; border-radius:50%; }
+.legend-group { display:flex; align-items:center; gap:10px; }
+.legend-sep { width:1px; height:14px; background:#1e2235; }
+.legend-item { display:flex; align-items:center; gap:4px; font-size:10px; color:#555; }
+.legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ── 搜索框 ── */
+#search-wrap { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:10; }
+#search {
+  background:#12152088; backdrop-filter:blur(8px);
+  border:1px solid #1e2235; border-radius:18px;
+  color:#ccc; font-size:12px; padding:6px 15px; width:190px;
+  outline:none; transition: border-color 0.15s, width 0.2s;
+}
+#search:focus { border-color:#4a5a9e; width:250px; }
+#search::placeholder { color:#333; }
 
 /* ── 右键菜单 ── */
 #ctx-menu {
-  position:fixed; background:#1e2235; border:1px solid #2a2d3e; border-radius:8px;
-  padding:6px 0; z-index:999; display:none; min-width:140px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  position:fixed; background:#1a1e30; border:1px solid #252836; border-radius:8px;
+  padding:5px 0; z-index:999; display:none; min-width:140px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
 }
-.ctx-item { padding:8px 16px; font-size:13px; cursor:pointer; color:#ccc; }
-.ctx-item:hover { background:#2a3050; }
-.ctx-item .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
-
-/* 搜索框 */
-#search-wrap {
-  position:absolute; top:16px; left:50%; transform:translateX(-50%);
-  z-index:10;
-}
-#search {
-  background:#16192a; border:1px solid #2a2d3e; border-radius:20px;
-  color:#ccc; font-size:13px; padding:7px 16px; width:200px;
-  outline:none; transition: border-color 0.15s, width 0.2s;
-}
-#search:focus { border-color:#5a6a9e; width:260px; }
-#search::placeholder { color:#444; }
+.ctx-item { padding:8px 15px; font-size:12.5px; cursor:pointer; color:#bbc; }
+.ctx-item:hover { background:#252c44; }
+.ctx-item .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:8px; }
 
 /* 滚动条 */
-::-webkit-scrollbar { width:4px; }
-::-webkit-scrollbar-track { background:#0f1117; }
-::-webkit-scrollbar-thumb { background:#2a2d3e; border-radius:2px; }
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:#0a0c14; }
+::-webkit-scrollbar-thumb { background:#252836; border-radius:2px; }
 </style>
 </head>
 <body>
@@ -168,9 +183,9 @@ svg { width:100%; height:100%; }
   <svg id="graph"></svg>
 
   <div id="header">
-    <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#666;text-decoration:none;margin-bottom:6px;padding:4px 10px;background:#16192a;border:1px solid #2a2d3e;border-radius:14px;" onmouseover="this.style.color='#aaa'" onmouseout="this.style.color='#666'">← 返回看板</a>
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#44475a;text-decoration:none;margin-bottom:6px;padding:3px 10px;background:#12152088;border:1px solid #1e2235;border-radius:12px;" onmouseover="this.style.color='#9ab'" onmouseout="this.style.color='#44475a'">← 返回看板</a>
     <h1>知识图谱</h1>
-    <p>点击节点展开 · 双击切换掌握状态 · 右键更多操作</p>
+    <p>点击节点展开 · 双击切换状态 · 右键更多</p>
   </div>
 
   <div id="search-wrap">
@@ -181,37 +196,73 @@ svg { width:100%; height:100%; }
     <div id="dash-title">学习进度</div>
     <div id="dash-total-label">加载中…</div>
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="total-bar" style="width:0%"></div></div>
+
+    <div class="cat-group-label">📚 专业课基础</div>
     <div class="cat-progress">
-      <div class="cat-progress-label">🔵 专业课基础 <span id="pct-course">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-course" id="bar-course" style="width:0%"></div></div>
+      <div class="cat-progress-label">算法与数据结构 <span id="pct-algo">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-algo" id="bar-algo" style="width:0%"></div></div>
     </div>
     <div class="cat-progress">
-      <div class="cat-progress-label">🟢 编程与实验 <span id="pct-coding">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-coding" id="bar-coding" style="width:0%"></div></div>
+      <div class="cat-progress-label">系统与网络 <span id="pct-sys">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-sys" id="bar-sys" style="width:0%"></div></div>
     </div>
     <div class="cat-progress">
-      <div class="cat-progress-label">🟡 学术素养 <span id="pct-academic">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-academic" id="bar-academic" style="width:0%"></div></div>
+      <div class="cat-progress-label">AI 基础 <span id="pct-ai">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-ai" id="bar-ai" style="width:0%"></div></div>
     </div>
+
+    <div class="cat-group-label">💻 编程与实验</div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">开发工具链 <span id="pct-dev">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-dev" id="bar-dev" style="width:0%"></div></div>
+    </div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">实验工程 <span id="pct-exp">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-exp" id="bar-exp" style="width:0%"></div></div>
+    </div>
+
+    <div class="cat-group-label">🎓 学术素养</div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">文献与调研 <span id="pct-survey">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-survey" id="bar-survey" style="width:0%"></div></div>
+    </div>
+    <div class="cat-progress">
+      <div class="cat-progress-label">输出与表达 <span id="pct-output">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-output" id="bar-output" style="width:0%"></div></div>
+    </div>
+
     <button id="btn-screenshot">📸 生成进度截图</button>
   </div>
 
   <div id="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#5a9ee0"></div>专业课基础</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#5ac97a"></div>编程与实验</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e0b85a"></div>学术素养</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#444; border:1px solid #ffe066"></div>学习中</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#5ac97a; box-shadow:0 0 5px #5ac97a"></div>已掌握</div>
+    <div class="legend-group">
+      <div class="legend-item"><div class="legend-dot" style="background:#4a90e0"></div>算法与数据结构</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7c6fe0"></div>系统与网络</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#5bbfdf"></div>AI基础</div>
+    </div>
+    <div class="legend-sep"></div>
+    <div class="legend-group">
+      <div class="legend-item"><div class="legend-dot" style="background:#43c87a"></div>开发工具链</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#35b5a0"></div>实验工程</div>
+    </div>
+    <div class="legend-sep"></div>
+    <div class="legend-group">
+      <div class="legend-item"><div class="legend-dot" style="background:#e0a83a"></div>文献与调研</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d9607a"></div>输出与表达</div>
+    </div>
+    <div class="legend-sep"></div>
+    <div class="legend-group">
+      <div class="legend-item"><div class="legend-dot" style="background:#444;border:1px solid #ffe066"></div>学习中</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#43c87a;box-shadow:0 0 5px #43c87a"></div>已掌握</div>
+    </div>
   </div>
 </div>
 
 <!-- 右侧详情面板 -->
 <div id="detail-panel" class="hidden">
   <div id="detail-header">
-    <div>
-      <div id="detail-title">—</div>
-      <div id="detail-cat-badge">—</div>
-    </div>
+    <div id="detail-title">—</div>
+    <div id="detail-cat-badge">—</div>
   </div>
   <div id="detail-body">
     <div id="detail-desc"></div>
@@ -220,7 +271,7 @@ svg { width:100%; height:100%; }
       <div id="detail-links-list"></div>
     </div>
     <div id="detail-note-label">我的笔记</div>
-    <textarea id="detail-note" placeholder="在这里记录你的理解、疑问或复习要点…"></textarea>
+    <textarea id="detail-note" placeholder="记录你的理解、疑问或复习要点…"></textarea>
   </div>
   <div id="detail-footer">
     <div class="status-btns">
@@ -233,261 +284,436 @@ svg { width:100%; height:100%; }
 
 <!-- 右键菜单 -->
 <div id="ctx-menu">
-  <div class="ctx-item" data-s="todo"><span class="dot" style="background:#444;border:1px solid #666"></span>标记为未学</div>
-  <div class="ctx-item" data-s="learning"><span class="dot" style="background:#ffe066"></span>标记为学习中</div>
-  <div class="ctx-item" data-s="mastered"><span class="dot" style="background:#5ac97a"></span>标记为已掌握</div>
+  <div class="ctx-item" data-s="todo"><span class="dot" style="background:#333;border:1px solid #555"></span>标记未学</div>
+  <div class="ctx-item" data-s="learning"><span class="dot" style="background:#ffe066"></span>标记学习中</div>
+  <div class="ctx-item" data-s="mastered"><span class="dot" style="background:#43c87a"></span>标记已掌握</div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-// 数据定义
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// 数据：7 子分类，52 节点，80+ 条边
+// cat: algo / sys / ai / dev / exp / survey / output
+// anchor:true 表示锚点节点（稍大）
+// ═══════════════════════════════════════════════════════
 const NODES = [
-  // ── 专业课基础 (cat: course) ──
-  { id:"ds",       label:"数据结构",       cat:"course",    desc:"数组、链表、栈、队列、树（二叉树/BST/AVL/红黑树/B树）、图、堆。重点：各结构的增删查时间复杂度。" },
-  { id:"sort",     label:"排序算法",       cat:"course",    desc:"快排O(nlogn)/归并O(nlogn)/堆排O(nlogn)/计数排序O(n+k)。快排最坏O(n²)，归并稳定，堆排原地。手写快排是高频面试题。" },
-  { id:"tree",     label:"二叉树",         cat:"course",    desc:"前中后序遍历（递归+迭代）、层序遍历（BFS）、BST性质、平衡树（AVL旋转）。DFS/BFS框架要能背出来。" },
-  { id:"graph_ds", label:"图论基础",       cat:"course",    desc:"BFS/DFS、最短路(Dijkstra/Floyd)、最小生成树(Prim/Kruskal)、拓扑排序、强连通分量。" },
-  { id:"os",       label:"操作系统",       cat:"course",    desc:"进程/线程、调度算法、内存管理（分页/分段）、文件系统、I/O、死锁（四条件+银行家算法）。" },
-  { id:"process",  label:"进程与线程",     cat:"course",    desc:"进程=资源分配单位，线程=CPU调度单位。PCB结构，进程状态机(就绪/运行/阻塞)，进程通信(管道/信号/共享内存/消息队列)。" },
-  { id:"schedule", label:"调度算法",       cat:"course",    desc:"FCFS/SJF/RR时间片轮转/优先级调度/多级反馈队列。评价指标：周转时间、等待时间、响应时间、CPU利用率。" },
-  { id:"memory",   label:"内存管理",       cat:"course",    desc:"虚拟内存、分页(页表/TLB)、分段、段页式、缺页置换(FIFO/LRU/Clock)、内存碎片。" },
-  { id:"network",  label:"计算机网络",     cat:"course",    desc:"OSI七层/TCP-IP五层模型、HTTP/HTTPS、TCP/UDP、DNS、路由协议。重点：三次握手四次挥手。" },
-  { id:"tcpip",    label:"TCP/IP",         cat:"course",    desc:"三次握手(SYN/SYN-ACK/ACK)，四次挥手(FIN/ACK/FIN/ACK)，TIME_WAIT=2MSL原因，拥塞控制(慢启动/拥塞避免/快重传/快恢复)。" },
-  { id:"http",     label:"HTTP/HTTPS",     cat:"course",    desc:"HTTP无状态协议，请求方法(GET/POST/PUT/DELETE)，状态码(2xx成功/3xx重定向/4xx客户端错/5xx服务端错)。HTTPS=HTTP+TLS，非对称加密交换密钥。" },
-  { id:"ca",       label:"计算机组成原理", cat:"course",    desc:"指令系统、CPU结构(ALU/CU/寄存器)、流水线、Cache(局部性原理/替换策略)、总线、I/O接口。" },
-  { id:"cache",    label:"Cache与存储层次",cat:"course",    desc:"L1/L2/L3 Cache，局部性原理(时间/空间)，Cache映射(直接/全相联/组相联)，写策略(写直达/写回)。" },
-  { id:"pipeline", label:"流水线",         cat:"course",    desc:"指令流水线5段：IF/ID/EX/MEM/WB。冒险：结构冒险/数据冒险(RAW/WAR/WAW)/控制冒险。解决：停顿/转发/分支预测。" },
-  { id:"ml_basic", label:"机器学习基础",   cat:"course",    desc:"监督/无监督/强化学习，梯度下降，损失函数，正则化(L1/L2)，过拟合/欠拟合，交叉验证，评价指标(Acc/F1/AUC)。" },
-  { id:"dl_basic", label:"深度学习基础",   cat:"course",    desc:"BP反向传播，激活函数(ReLU/Sigmoid/Tanh)，BN批归一化，Dropout，CNN/RNN/Transformer架构对比。" },
-  { id:"conv",     label:"卷积神经网络",   cat:"course",    desc:"卷积层(卷积核/步长/填充/输出尺寸)，池化层(Max/Avg)，全连接层，经典网络：LeNet/AlexNet/VGG/ResNet/MobileNet。" },
-  { id:"transformer", label:"Transformer", cat:"course",    desc:"Self-Attention O(n²d)，多头注意力，位置编码，Encoder-Decoder结构，LayerNorm，FFN。是CoES/ESMCT的基础架构。" },
 
-  // ── 编程与实验 (cat: coding) ──
-  { id:"python",      label:"Python熟练度",  cat:"coding",    desc:"列表推导式、装饰器、生成器、上下文管理器、类型注解。科研常用库：NumPy向量化操作、Pandas数据处理、Matplotlib可视化。" },
-  { id:"pytorch",     label:"PyTorch",        cat:"coding",    desc:"Tensor操作、autograd自动微分、nn.Module、DataLoader、自定义Loss。调试技巧：assert tensor.shape、中间梯度打印。" },
-  { id:"git",         label:"Git版本控制",    cat:"coding",    desc:"commit/branch/merge/rebase，GitHub协作（fork→PR→review），实验代码用分支隔离，配合.gitignore排除大文件和缓存。" },
-  { id:"linux",       label:"Linux基础",      cat:"coding",    desc:"常用命令：ls/cd/cp/mv/grep/find/ps/kill/nohup。服务器使用：ssh连接、tmux会话保持、scp传文件、环境变量配置。" },
-  { id:"server",      label:"服务器使用",     cat:"coding",    desc:"GPU资源管理(nvidia-smi/watch)，conda虚拟环境隔离，SLURM调度系统(sbatch/squeue)，训练任务后台运行(nohup/tmux)。" },
-  { id:"exp_mgmt",    label:"实验管理",       cat:"coding",    desc:"用wandb/tensorboard记录loss曲线，实验配置用yaml管理，每次实验建独立目录保存checkpoint和log，写实验记录防止遗忘。" },
-  { id:"debug",       label:"代码调试",       cat:"coding",    desc:"pdb断点调试，assert检查shape/dtype，打印中间变量验证逻辑。梯度不更新的常见原因：loss.item()截断/optimizer.zero_grad()遗漏。" },
-  { id:"env",         label:"环境配置",       cat:"coding",    desc:"conda/pip依赖管理，requirements.txt和environment.yml，CUDA版本与PyTorch版本对应，Docker容器化保证实验可复现。" },
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  // 算法与数据结构 (algo) 蓝
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  { id:"ds",        label:"数据结构",     cat:"algo", anchor:true,
+    desc:"数组、链表、栈/队列、树、图、堆、哈希表。掌握每种结构的适用场景和增删查的时间复杂度，是刷题和面试的基础。" },
+  { id:"sort",      label:"排序算法",     cat:"algo",
+    desc:"快排O(nlogn)平均/O(n²)最坏；归并O(nlogn)稳定；堆排O(nlogn)原地不稳定；计数/基数O(n+k)非比较。手写快排是高频考点。" },
+  { id:"tree",      label:"二叉树",       cat:"algo",
+    desc:"前/中/后序遍历（递归+迭代模板）、层序BFS、BST（查找/插入/删除）、AVL/红黑树平衡条件。DFS递归框架要烂熟于心。" },
+  { id:"graph_ds",  label:"图算法",       cat:"algo",
+    desc:"BFS/DFS遍历、Dijkstra最短路（堆优化O((V+E)logV)）、Floyd全源O(V³)、Kruskal/Prim最小生成树、拓扑排序（Kahn算法）、并查集。" },
+  { id:"dp",        label:"动态规划",     cat:"algo",
+    desc:"状态定义→转移方程→初始化→遍历顺序。经典：背包、LCS、LIS、编辑距离、矩阵链乘。优化：滚动数组、单调队列、斜率优化。" },
+  { id:"complexity",label:"复杂度分析",   cat:"algo",
+    desc:"时间/空间大O记号，摊还分析，Master定理（分治递归分析）。能快速判断算法效率是写好代码的基本功。" },
+  { id:"hash",      label:"哈希表",       cat:"algo",
+    desc:"哈希函数设计、冲突解决（链地址/开放寻址）、装载因子、再哈希。Python dict / C++ unordered_map的底层原理。" },
 
-  // ── 学术素养 (cat: academic) ──
-  { id:"paper_search",label:"论文检索",       cat:"academic",  desc:"Google Scholar/arXiv/Semantic Scholar检索技巧，关键词组合，引用追踪（引用了谁/被谁引用），订阅顶会(CVPR/ACL/NeurIPS/ICLR)更新。" },
-  { id:"paper_read",  label:"论文精读",       cat:"academic",  desc:"三遍读法：①快扫(摘要/图表/结论判断价值)→②通读(理解方法和实验)→③精读(推导细节/复现关键实验)。重点看problem formulation和ablation。" },
-  { id:"field_survey",label:"领域视野",       cat:"academic",  desc:"了解方向发展脉络：经典baseline→近3年SOTA→当前open problem。用paperwithcode追踪benchmark，画技术演进时间线。" },
-  { id:"idea",        label:"想Idea",         cat:"academic",  desc:"从问题出发：现有方法的局限性在哪？什么假设能解决？类比其他领域方法。好idea要有motivation：为什么这样设计比baseline好。" },
-  { id:"latex",       label:"LaTeX写作",      cat:"academic",  desc:"论文写作必备：equation/figure/table/algorithm环境，biblatex参考文献管理，Overleaf在线协作，图表要矢量格式(.pdf/.eps)。" },
-  { id:"paper_write", label:"论文写作",       cat:"academic",  desc:"结构：Abstract→Intro→Related Work→Method→Experiments→Conclusion。先写Method和Experiments，最后写Abstract和Intro，每句话有作用。" },
-  { id:"rebuttal",    label:"Rebuttal",       cat:"academic",  desc:"审稿意见逐条回应，态度诚恳。对合理质疑：承认并补充实验；对误解：礼貌澄清+指出对应文中位置。48小时内提交最优。" },
-  { id:"slides",      label:"学术报告",       cat:"academic",  desc:"组会汇报/论文展示：一页一核心点，图示优先文字，动画不花哨。讲paper：背景→问题→方法→结果→局限性，时间控制严格。" },
-  { id:"ref_mgmt",    label:"文献管理",       cat:"academic",  desc:"Zotero管理文献（分类标签+注释），导出bibtex用于LaTeX，阅读时记录：核心贡献、创新点、局限性、可借鉴方法。" },
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  // 系统与网络 (sys) 紫
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  { id:"os",        label:"操作系统",     cat:"sys", anchor:true,
+    desc:"进程/线程管理、调度算法、内存管理（虚拟内存/分页/TLB）、文件系统、I/O模型、死锁（4条件+银行家算法）。" },
+  { id:"process",   label:"进程与线程",   cat:"sys",
+    desc:"进程=资源分配单位，线程=CPU调度单位。PCB结构、五状态转换、进程通信（管道/信号量/共享内存/消息队列）、协程概念。" },
+  { id:"schedule",  label:"调度算法",     cat:"sys",
+    desc:"FCFS/SJF/RR时间片轮转/优先级/多级反馈队列。评价指标：CPU利用率、吞吐量、周转时间、等待时间、响应时间。" },
+  { id:"memory",    label:"内存管理",     cat:"sys",
+    desc:"虚拟地址空间、分页（页表/多级页表）、TLB、缺页中断、页面置换（FIFO/LRU/Clock）、内存碎片（内/外碎片）。" },
+  { id:"network",   label:"计算机网络",   cat:"sys", anchor:true,
+    desc:"OSI七层/TCP-IP四层模型，各层协议职责，子网划分/CIDR，路由协议（RIP/OSPF/BGP），HTTP/HTTPS/DNS/ARP/ICMP。" },
+  { id:"tcpip",     label:"TCP/IP",       cat:"sys",
+    desc:"三次握手（SYN→SYN-ACK→ACK）、四次挥手、TIME_WAIT=2MSL原因、拥塞控制（慢启动/拥塞避免/快重传/快恢复）、滑动窗口。" },
+  { id:"http",      label:"HTTP/HTTPS",   cat:"sys",
+    desc:"HTTP无状态、请求方法(GET/POST等)、常用状态码、Cookie/Session、HTTP2多路复用。HTTPS=TLS+HTTP，握手流程，证书链验证。" },
+  { id:"ca",        label:"计算机组成",   cat:"sys", anchor:true,
+    desc:"指令集体系结构（CISC/RISC）、CPU组成（ALU/寄存器/控制器）、总线、Cache层次结构（L1/L2/L3）、I/O接口与DMA。" },
+  { id:"cache",     label:"Cache原理",    cat:"sys",
+    desc:"时间/空间局部性原理、Cache映射（直接/全相联/组相联）、替换策略（LRU/随机）、写策略（写直达/写回/写分配）。" },
+  { id:"pipeline",  label:"流水线",       cat:"sys",
+    desc:"5级流水线（IF/ID/EX/MEM/WB）、吞吐率与加速比、流水线冒险（结构/数据/控制）、数据前递、分支预测（静态/动态BTB）。" },
+
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  // AI 基础 (ai) 青蓝
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  { id:"ml_basic",  label:"机器学习",     cat:"ai", anchor:true,
+    desc:"监督/无监督/强化学习范式，损失函数，梯度下降（SGD/Momentum/Adam），正则化（L1/L2/Dropout），偏差-方差分解，交叉验证。" },
+  { id:"dl_basic",  label:"深度学习",     cat:"ai", anchor:true,
+    desc:"BP反向传播（链式法则），激活函数（ReLU/GELU/Sigmoid/Tanh），BatchNorm/LayerNorm，优化器（Adam/AdamW），学习率调度。" },
+  { id:"conv",      label:"CNN",          cat:"ai",
+    desc:"卷积核/步长/填充/输出尺寸计算，感受野，池化层，经典架构：LeNet→AlexNet→VGG→ResNet（残差连接）→EfficientNet。" },
+  { id:"rnn",       label:"RNN/LSTM",     cat:"ai",
+    desc:"RNN梯度消失问题，LSTM三门控（遗忘/输入/输出）+cell state，GRU简化。序列建模：NLP、时序预测、强化学习policy。" },
+  { id:"transformer", label:"Transformer", cat:"ai", anchor:true,
+    desc:"Scaled Dot-Product Attention，Multi-Head Attention，位置编码（正弦/可学习），Pre-LN vs Post-LN，FFN，Encoder-Decoder架构。" },
+  { id:"attention", label:"注意力机制",   cat:"ai",
+    desc:"Q/K/V矩阵，Self-Attention O(n²d)复杂度，Cross-Attention（Decoder中），高效Attention变种（Flash Attention/线性注意力）。" },
+  { id:"pretrain",  label:"预训练与微调", cat:"ai",
+    desc:"BERT（MLM+NSP预训练）、GPT（自回归）、预训练→微调范式、LoRA/Adapter等参数高效微调（PEFT）方法、提示工程。" },
+  { id:"eval",      label:"评估指标",     cat:"ai",
+    desc:"分类：Acc/Precision/Recall/F1/AUC-ROC。检测：mAP/IoU。生成：BLEU/ROUGE/Perplexity。统计检验：配对t检验/置信区间。" },
+
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  // 开发工具链 (dev) 绿
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  { id:"python",    label:"Python",       cat:"dev", anchor:true,
+    desc:"列推导式、生成器、装饰器、上下文管理器、类型注解、async/await。科研常用：NumPy向量化、Pandas数据处理、Matplotlib/Seaborn可视化。" },
+  { id:"pytorch",   label:"PyTorch",      cat:"dev", anchor:true,
+    desc:"Tensor/autograd、nn.Module、DataLoader、自定义Loss/Optimizer。分布式训练（DDP）、混合精度（AMP）、模型序列化与加载。" },
+  { id:"git",       label:"Git",          cat:"dev",
+    desc:"commit/branch/merge/rebase，GitHub协作（fork→PR→code review），实验代码分支隔离，.gitignore排除大文件，Tag版本标记。" },
+  { id:"linux",     label:"Linux",        cat:"dev",
+    desc:"常用命令（ls/grep/find/ps/kill/chmod），Shell脚本，管道与重定向，进程管理，环境变量，cron定时，系统监控（htop/iostat）。" },
+  { id:"vscode",    label:"IDE与调试",    cat:"dev",
+    desc:"VSCode断点调试/pdb，远程SSH开发，Python/Jupyter扩展，代码格式化（black/flake8），快捷键与效率技巧。" },
+
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  // 实验工程 (exp) 青
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  { id:"server",    label:"服务器",       cat:"exp", anchor:true,
+    desc:"GPU资源管理（nvidia-smi/watch），conda虚拟环境，SLURM调度（sbatch/squeue/scancel），tmux会话保持，scp/rsync传文件。" },
+  { id:"env",       label:"环境管理",     cat:"exp",
+    desc:"conda/pip/poetry依赖管理，requirements.txt和environment.yml，CUDA版本与PyTorch对应关系，Docker容器化实验复现。" },
+  { id:"exp_mgmt",  label:"实验管理",     cat:"exp",
+    desc:"wandb/TensorBoard记录loss/metric曲线，YAML配置文件管理超参，每次实验独立目录保存checkpoint和log，Hydra配置框架。" },
+  { id:"debug",     label:"调试技巧",     cat:"exp",
+    desc:"assert检查shape/dtype，打印中间梯度，梯度不更新排查（loss.item()/zero_grad遗漏），NaN/Inf追踪，数值稳定性技巧。" },
+  { id:"repro",     label:"可复现性",     cat:"exp",
+    desc:"固定随机种子（torch/numpy/random），记录硬件与软件版本，代码+数据+config一同存档，Dockerfile保证跨机器一致性。" },
+  { id:"data_proc", label:"数据处理",     cat:"exp",
+    desc:"数据清洗与预处理，DataLoader自定义collate_fn，数据增强策略（albumentations/torchvision.transforms），不平衡数据采样（over/under sampling）。" },
+
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  // 文献与调研 (survey) 橙
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  { id:"paper_search", label:"论文检索",  cat:"survey", anchor:true,
+    desc:"Google Scholar/arXiv/Semantic Scholar，关键词组合策略，引用追踪（引用了谁/被谁引）。订阅顶会alert（CVPR/NeurIPS/ACL/ICLR）。" },
+  { id:"paper_read",   label:"论文精读",  cat:"survey",
+    desc:"三遍读法：①快扫（摘要/图表/结论判断值不值）→②通读（理解方法和实验）→③精读（推导细节/复现关键实验）。重点看ablation study。" },
+  { id:"field_survey", label:"领域调研",  cat:"survey",
+    desc:"梳理方向发展脉络：经典baseline→近3年SOTA→当前open problem。用Papers with Code追踪benchmark，画技术演进时间线。" },
+  { id:"ref_mgmt",     label:"文献管理",  cat:"survey",
+    desc:"Zotero分类标签+注释，导出bibtex，阅读时记录：核心贡献/创新点/局限性/可借鉴方法。Connected Papers图谱关联分析。" },
+  { id:"idea",         label:"想Idea",    cat:"survey", anchor:true,
+    desc:"从gap出发：现有方法哪里做不好？什么假设能解决？类比其他领域方法迁移。好idea要有strong motivation：为什么这样设计比baseline好？" },
+
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  // 输出与表达 (output) 红粉
+  // ━━━━━━━━━━━━━━━━━━━━━━
+  { id:"latex",       label:"LaTeX",      cat:"output",
+    desc:"equation/figure/table/algorithm环境，biblatex/natbib参考文献，Overleaf在线协作，图表用矢量格式（.pdf/.eps），自动化脚本批量编译。" },
+  { id:"paper_write", label:"论文写作",   cat:"output", anchor:true,
+    desc:"结构：Abstract→Intro→Related Work→Method→Experiments→Conclusion。写作顺序：先Method+Experiments，后Intro+Abstract。每句话有且只有一个作用。" },
+  { id:"rebuttal",    label:"Rebuttal",   cat:"output",
+    desc:"审稿意见逐条回应，态度诚恳专业。对合理质疑：承认局限并补充实验；对误解：礼貌澄清+指向文中对应位置。DDL前12小时完成初稿。" },
+  { id:"slides",      label:"学术报告",   cat:"output",
+    desc:"一页一核心点，图示优于文字，动画克制。讲paper结构：背景→问题→方法→结果→局限性。组会汇报时间控制，预留Q&A时间。" },
+  { id:"poster",      label:"学术海报",   cat:"output",
+    desc:"竖版A0/横版A0，3分钟电梯演讲配合。模块：贡献摘要/方法图/核心实验结果。视觉层次清晰，远处可读主标题，近处可读细节。" },
+  { id:"writing_en",  label:"英文写作",   cat:"output",
+    desc:"学术英语规范：避免口语化，主动/被动语态选择，时态一致（过去式描述实验/现在式描述结论），精确用词，Grammarly辅助校对。" },
 ];
 
 const EDGES = [
-  // 专业课内部关联
-  { s:"ds",           t:"sort" },
-  { s:"ds",           t:"tree" },
-  { s:"ds",           t:"graph_ds" },
-  { s:"tree",         t:"sort" },
-  { s:"os",           t:"process" },
-  { s:"os",           t:"schedule" },
-  { s:"os",           t:"memory" },
-  { s:"network",      t:"tcpip" },
-  { s:"network",      t:"http" },
-  { s:"ca",           t:"cache" },
-  { s:"ca",           t:"pipeline" },
-  { s:"ml_basic",     t:"dl_basic" },
-  { s:"dl_basic",     t:"conv" },
-  { s:"dl_basic",     t:"transformer" },
-  { s:"conv",         t:"attention" },
-  // 编程与实验内部关联
-  { s:"pytorch",      t:"python" },
-  { s:"server",       t:"linux" },
-  { s:"exp_mgmt",     t:"pytorch" },
-  { s:"exp_mgmt",     t:"git" },
-  { s:"debug",        t:"pytorch" },
-  { s:"env",          t:"linux" },
-  { s:"env",          t:"server" },
-  // 编程↔专业课
-  { s:"pytorch",      t:"dl_basic" },
-  { s:"pytorch",      t:"conv" },
-  { s:"pytorch",      t:"transformer" },
-  { s:"exp_mgmt",     t:"ml_basic" },
-  { s:"python",       t:"ml_basic" },
-  // 学术↔专业课
-  { s:"field_survey", t:"transformer" },
-  // 学术素养内部关联
-  { s:"paper_read",   t:"paper_search" },
-  { s:"field_survey", t:"paper_read" },
-  { s:"idea",         t:"field_survey" },
-  { s:"paper_write",  t:"latex" },
-  { s:"paper_write",  t:"ref_mgmt" },
-  { s:"rebuttal",     t:"paper_write" },
-  { s:"slides",       t:"paper_write" },
-  { s:"ref_mgmt",     t:"paper_search" },
-  // 学术↔编程
-  { s:"exp_mgmt",     t:"paper_write" },
-  { s:"debug",        t:"idea" },
+  // ────────── algo 内部 ──────────
+  { s:"ds",         t:"sort",       w:2 },
+  { s:"ds",         t:"tree",       w:2 },
+  { s:"ds",         t:"graph_ds",   w:2 },
+  { s:"ds",         t:"hash",       w:2 },
+  { s:"ds",         t:"dp",         w:1 },
+  { s:"tree",       t:"sort",       w:1 },
+  { s:"tree",       t:"graph_ds",   w:1 },
+  { s:"dp",         t:"graph_ds",   w:1 },
+  { s:"complexity", t:"ds",         w:1 },
+  { s:"complexity", t:"sort",       w:1 },
+  { s:"complexity", t:"dp",         w:1 },
+  { s:"hash",       t:"graph_ds",   w:1 },
+
+  // ────────── sys 内部 ──────────
+  { s:"os",         t:"process",    w:2 },
+  { s:"os",         t:"schedule",   w:2 },
+  { s:"os",         t:"memory",     w:2 },
+  { s:"process",    t:"schedule",   w:1 },
+  { s:"process",    t:"memory",     w:1 },
+  { s:"network",    t:"tcpip",      w:2 },
+  { s:"network",    t:"http",       w:2 },
+  { s:"tcpip",      t:"http",       w:1 },
+  { s:"ca",         t:"cache",      w:2 },
+  { s:"ca",         t:"pipeline",   w:2 },
+  { s:"cache",      t:"pipeline",   w:1 },
+  { s:"memory",     t:"cache",      w:1 },
+
+  // ────────── ai 内部 ──────────
+  { s:"ml_basic",   t:"dl_basic",   w:2 },
+  { s:"ml_basic",   t:"eval",       w:1 },
+  { s:"dl_basic",   t:"conv",       w:2 },
+  { s:"dl_basic",   t:"rnn",        w:2 },
+  { s:"dl_basic",   t:"transformer",w:2 },
+  { s:"dl_basic",   t:"attention",  w:2 },
+  { s:"conv",       t:"attention",  w:1 },
+  { s:"rnn",        t:"attention",  w:1 },
+  { s:"transformer",t:"attention",  w:2 },
+  { s:"transformer",t:"pretrain",   w:2 },
+  { s:"pretrain",   t:"attention",  w:1 },
+  { s:"eval",       t:"dl_basic",   w:1 },
+
+  // ────────── dev 内部 ──────────
+  { s:"pytorch",    t:"python",     w:2 },
+  { s:"pytorch",    t:"vscode",     w:1 },
+  { s:"git",        t:"python",     w:1 },
+  { s:"linux",      t:"git",        w:1 },
+  { s:"vscode",     t:"python",     w:1 },
+  { s:"vscode",     t:"linux",      w:1 },
+
+  // ────────── exp 内部 ──────────
+  { s:"server",     t:"linux",      w:2 },
+  { s:"server",     t:"env",        w:2 },
+  { s:"env",        t:"linux",      w:1 },
+  { s:"exp_mgmt",   t:"pytorch",    w:2 },
+  { s:"exp_mgmt",   t:"git",        w:1 },
+  { s:"exp_mgmt",   t:"server",     w:1 },
+  { s:"debug",      t:"pytorch",    w:2 },
+  { s:"debug",      t:"vscode",     w:1 },
+  { s:"repro",      t:"env",        w:2 },
+  { s:"repro",      t:"git",        w:1 },
+  { s:"repro",      t:"exp_mgmt",   w:1 },
+  { s:"data_proc",  t:"python",     w:2 },
+  { s:"data_proc",  t:"pytorch",    w:1 },
+
+  // ────────── survey 内部 ──────────
+  { s:"paper_read",   t:"paper_search", w:2 },
+  { s:"field_survey", t:"paper_read",   w:2 },
+  { s:"field_survey", t:"paper_search", w:1 },
+  { s:"idea",         t:"field_survey", w:2 },
+  { s:"idea",         t:"paper_read",   w:1 },
+  { s:"ref_mgmt",     t:"paper_search", w:1 },
+  { s:"ref_mgmt",     t:"paper_read",   w:1 },
+
+  // ────────── output 内部 ──────────
+  { s:"paper_write",  t:"latex",      w:2 },
+  { s:"paper_write",  t:"writing_en", w:2 },
+  { s:"rebuttal",     t:"paper_write",w:2 },
+  { s:"slides",       t:"paper_write",w:1 },
+  { s:"poster",       t:"slides",     w:1 },
+  { s:"poster",       t:"paper_write",w:1 },
+  { s:"writing_en",   t:"latex",      w:1 },
+
+  // ══════════════ 跨类核心连边 ══════════════
+
+  // algo ↔ ai
+  { s:"ds",         t:"ml_basic",   w:1 },
+  { s:"dp",         t:"ml_basic",   w:1 },
+  { s:"graph_ds",   t:"dl_basic",   w:1 },
+  { s:"complexity", t:"attention",  w:1 },
+
+  // sys ↔ ai
+  { s:"memory",     t:"dl_basic",   w:1 },
+  { s:"cache",      t:"dl_basic",   w:1 },
+  { s:"pipeline",   t:"transformer",w:1 },
+  { s:"os",         t:"server",     w:1 },
+
+  // algo ↔ dev
+  { s:"ds",         t:"python",     w:1 },
+  { s:"sort",       t:"python",     w:1 },
+  { s:"dp",         t:"pytorch",    w:1 },
+
+  // ai ↔ dev
+  { s:"dl_basic",   t:"pytorch",    w:2 },
+  { s:"conv",       t:"pytorch",    w:1 },
+  { s:"transformer",t:"pytorch",    w:1 },
+  { s:"pretrain",   t:"pytorch",    w:1 },
+  { s:"ml_basic",   t:"python",     w:1 },
+  { s:"eval",       t:"python",     w:1 },
+
+  // ai ↔ exp
+  { s:"dl_basic",   t:"exp_mgmt",   w:1 },
+  { s:"transformer",t:"data_proc",  w:1 },
+  { s:"eval",       t:"exp_mgmt",   w:1 },
+  { s:"pretrain",   t:"data_proc",  w:1 },
+
+  // dev ↔ exp
+  { s:"pytorch",    t:"exp_mgmt",   w:2 },
+  { s:"pytorch",    t:"debug",      w:2 },
+  { s:"python",     t:"data_proc",  w:1 },
+
+  // survey ↔ ai
+  { s:"field_survey",t:"transformer",w:1 },
+  { s:"field_survey",t:"pretrain",  w:1 },
+  { s:"idea",       t:"dl_basic",   w:1 },
+  { s:"idea",       t:"eval",       w:1 },
+
+  // survey ↔ output
+  { s:"idea",       t:"paper_write",w:2 },
+  { s:"field_survey",t:"paper_write",w:1 },
+  { s:"ref_mgmt",   t:"latex",      w:1 },
+  { s:"paper_read", t:"writing_en", w:1 },
+
+  // exp ↔ output
+  { s:"exp_mgmt",   t:"paper_write",w:2 },
+  { s:"data_proc",  t:"paper_write",w:1 },
+  { s:"repro",      t:"paper_write",w:1 },
+  { s:"debug",      t:"idea",       w:1 },
+
+  // sys ↔ dev
+  { s:"linux",      t:"os",         w:1 },
+  { s:"http",       t:"python",     w:1 },
+
+  // output ↔ survey
+  { s:"slides",     t:"field_survey",w:1 },
+  { s:"rebuttal",   t:"idea",       w:1 },
 ];
 
-// ═══════════════════════════════════════════════
-// 状态管理 (localStorage)
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// 状态管理 (localStorage)  — 与 index.html 共享同一个 key
+// ═══════════════════════════════════════════════════════
 const STORAGE_KEY = 'baoyuan_status';
 const NOTE_KEY    = 'baoyuan_notes';
-
-function loadStatus() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-  catch { return {}; }
-}
-function saveStatus(obj) { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
-function loadNotes() {
-  try { return JSON.parse(localStorage.getItem(NOTE_KEY)) || {}; }
-  catch { return {}; }
-}
-function saveNotes(obj) { localStorage.setItem(NOTE_KEY, JSON.stringify(obj)); }
+function loadStatus() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}; } catch{return {};} }
+function saveStatus(o) { localStorage.setItem(STORAGE_KEY, JSON.stringify(o)); }
+function loadNotes()  { try { return JSON.parse(localStorage.getItem(NOTE_KEY))||{}; }   catch{return {};} }
+function saveNotes(o)  { localStorage.setItem(NOTE_KEY,   JSON.stringify(o)); }
 
 let statusMap = loadStatus();
 let notesMap  = loadNotes();
-
 function getStatus(id) { return statusMap[id] || 'todo'; }
-function setStatus(id, s) {
-  statusMap[id] = s;
-  saveStatus(statusMap);
-}
+function setStatus(id, s) { statusMap[id] = s; saveStatus(statusMap); }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// 子分类元信息
+// ═══════════════════════════════════════════════════════
+const CAT_META = {
+  algo:   { label:'算法与数据结构', group:'course' },
+  sys:    { label:'系统与网络',     group:'course' },
+  ai:     { label:'AI基础',         group:'course' },
+  dev:    { label:'开发工具链',     group:'coding' },
+  exp:    { label:'实验工程',       group:'coding' },
+  survey: { label:'文献与调研',     group:'academic' },
+  output: { label:'输出与表达',     group:'academic' },
+};
+
+// ═══════════════════════════════════════════════════════
 // D3 图谱
-// ═══════════════════════════════════════════════
-const CAT_LABELS = { course:'专业课基础', coding:'编程与实验', academic:'学术素养' };
+// ═══════════════════════════════════════════════════════
 const nodes = NODES.map(d => ({...d}));
-const links = EDGES.map(d => ({ source: d.s, target: d.t }));
+const links = EDGES.map(d => ({ source:d.s, target:d.t, w:d.w||1 }));
 
 // 邻接表
 const adjSet = {};
 nodes.forEach(n => adjSet[n.id] = new Set());
 EDGES.forEach(e => { adjSet[e.s].add(e.t); adjSet[e.t].add(e.s); });
 
-const svg = d3.select('#graph');
+const svg   = d3.select('#graph');
 const width  = () => parseInt(svg.style('width'));
 const height = () => parseInt(svg.style('height'));
-
 const g = svg.append('g');
 
-// zoom
-svg.call(d3.zoom().scaleExtent([0.2, 3]).on('zoom', e => g.attr('transform', e.transform)));
+svg.call(d3.zoom().scaleExtent([0.15, 4]).on('zoom', e => g.attr('transform', e.transform)));
 
-// 力模拟
+// 力模拟 — anchor 节点互相排斥更多
 const sim = d3.forceSimulation(nodes)
-  .force('link',   d3.forceLink(links).id(d => d.id).distance(90).strength(0.4))
-  .force('charge', d3.forceManyBody().strength(-220))
-  .force('center', d3.forceCenter(0, 0))
-  .force('collide',d3.forceCollide(28));
+  .force('link',    d3.forceLink(links).id(d=>d.id).distance(d => d.w===2 ? 80 : 110).strength(d => d.w===2 ? 0.5 : 0.25))
+  .force('charge',  d3.forceManyBody().strength(d => d.anchor ? -320 : -180))
+  .force('center',  d3.forceCenter(0,0))
+  .force('collide', d3.forceCollide(d => d.anchor ? 36 : 26));
 
-// 重置 center 到当前容器中心
 function recenter() {
   sim.force('center', d3.forceCenter(width()/2, height()/2));
-  sim.alpha(0.1).restart();
+  sim.alpha(0.15).restart();
 }
 window.addEventListener('resize', recenter);
-setTimeout(recenter, 100);
+setTimeout(recenter, 80);
 
 // 边
 const linkSel = g.append('g')
-  .selectAll('line')
-  .data(links)
-  .join('line')
-  .attr('class','link');
+  .selectAll('line').data(links).join('line')
+  .attr('class', d => d.w === 2 ? 'link strong' : 'link');
 
 // 节点
 const nodeSel = g.append('g')
-  .selectAll('g')
-  .data(nodes)
-  .join('g')
-  .attr('class', d => `node cat-${d.cat}`)
+  .selectAll('g').data(nodes).join('g')
+  .attr('class', d => `node cat-${d.cat}${d.anchor ? ' anchor' : ''}`)
   .call(d3.drag()
     .on('start', (e,d) => { if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
     .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
     .on('end',   (e,d) => { if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
   );
 
-nodeSel.append('circle').attr('r', d => d.cat === 'paper' ? 18 : d.cat === 'course' ? 16 : 15);
-nodeSel.append('text').text(d => d.label).attr('dy', 30).style('font-size','11px');
+nodeSel.append('circle').attr('r', d => d.anchor ? 20 : 14);
+nodeSel.append('text').text(d => d.label).attr('dy', d => (d.anchor ? 20 : 14) + 14);
 
-// 模拟 tick
 sim.on('tick', () => {
   linkSel
-    .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-    .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-  nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+    .attr('x1', d=>d.source.x).attr('y1', d=>d.source.y)
+    .attr('x2', d=>d.target.x).attr('y2', d=>d.target.y);
+  nodeSel.attr('transform', d=>`translate(${d.x},${d.y})`);
 });
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // 状态渲染
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function applyStatus() {
   nodeSel.each(function(d) {
     const s = getStatus(d.id);
     const el = d3.select(this);
-    el.classed('mastered', s === 'mastered');
-    el.classed('learning', s === 'learning');
-    el.select('circle').classed('mastered', s === 'mastered');
+    el.classed('mastered', s==='mastered');
+    el.classed('learning', s==='learning');
+    el.select('circle')
+      .classed('mastered', s==='mastered')
+      .classed('learning', s==='learning');
   });
   updateDashboard();
 }
 
 function updateDashboard() {
-  const cats = ['course','coding','academic'];
-  const total = nodes.length;
-  const mastered = nodes.filter(n => getStatus(n.id) === 'mastered').length;
+  const total    = nodes.length;
+  const mastered = nodes.filter(n => getStatus(n.id)==='mastered').length;
   document.getElementById('dash-total-label').textContent = `已掌握 ${mastered} / ${total} 个知识点`;
   document.getElementById('total-bar').style.width = (mastered/total*100).toFixed(1)+'%';
 
-  cats.forEach(cat => {
-    const group = nodes.filter(n => n.cat === cat);
-    const m = group.filter(n => getStatus(n.id) === 'mastered').length;
-    const pct = group.length ? (m/group.length*100).toFixed(0) : 0;
+  ['algo','sys','ai','dev','exp','survey','output'].forEach(cat => {
+    const grp = nodes.filter(n=>n.cat===cat);
+    const m   = grp.filter(n=>getStatus(n.id)==='mastered').length;
+    const pct = grp.length ? (m/grp.length*100).toFixed(0) : 0;
     document.getElementById(`pct-${cat}`).textContent = pct+'%';
-    document.getElementById(`bar-${cat}`).style.width = pct+'%';
+    document.getElementById(`bar-${cat}`).style.width  = pct+'%';
   });
 }
 
 applyStatus();
 
-// ═══════════════════════════════════════════════
-// 选中节点 & 详情面板
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// 选中 & 详情面板
+// ═══════════════════════════════════════════════════════
 let selectedId = null;
 
 function selectNode(id) {
   selectedId = id;
-  const d = nodes.find(n => n.id === id);
+  const d = nodes.find(n=>n.id===id);
   if (!d) return;
 
-  // 高亮连接
   const neighbors = adjSet[id];
-  nodeSel.classed('dimmed', n => n.id !== id && !neighbors.has(n.id));
-  nodeSel.classed('selected', n => n.id === id);
-  linkSel.classed('highlighted', l => l.source.id === id || l.target.id === id);
-  linkSel.classed('link', true);
+  nodeSel.classed('dimmed', n => n.id!==id && !neighbors.has(n.id));
+  nodeSel.classed('selected', n => n.id===id);
+  linkSel.classed('highlighted', l => l.source.id===id || l.target.id===id);
 
-  // 显示面板
   const panel = document.getElementById('detail-panel');
   panel.classList.remove('hidden');
-  const dash = document.getElementById('dashboard');
-  dash.classList.remove('panel-hidden');
+  document.getElementById('dashboard').classList.remove('panel-hidden');
 
   document.getElementById('detail-title').textContent = d.label;
-  document.getElementById('detail-cat-badge').textContent = CAT_LABELS[d.cat];
+  document.getElementById('detail-cat-badge').textContent = CAT_META[d.cat]?.label || d.cat;
   document.getElementById('detail-desc').textContent = d.desc || '';
 
-  // 关联节点 chips
   const list = document.getElementById('detail-links-list');
   list.innerHTML = '';
-  [...neighbors].forEach(nid => {
-    const nd = nodes.find(x => x.id === nid);
+  [...neighbors].sort().forEach(nid => {
+    const nd = nodes.find(x=>x.id===nid);
     if (!nd) return;
     const chip = document.createElement('div');
     chip.className = 'link-chip';
@@ -496,14 +722,9 @@ function selectNode(id) {
     list.appendChild(chip);
   });
 
-  // 笔记
   document.getElementById('detail-note').value = notesMap[id] || '';
-
-  // 状态按钮
   const s = getStatus(id);
-  document.querySelectorAll('.status-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.s === s);
-  });
+  document.querySelectorAll('.status-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.s===s));
 }
 
 function clearSelection() {
@@ -514,27 +735,21 @@ function clearSelection() {
   document.getElementById('dashboard').classList.add('panel-hidden');
 }
 
-// 点击节点
-nodeSel.on('click', (e, d) => {
-  e.stopPropagation();
-  hideCtxMenu();
-  if (selectedId === d.id) { clearSelection(); }
-  else { selectNode(d.id); }
+nodeSel.on('click', (e,d) => {
+  e.stopPropagation(); hideCtxMenu();
+  if (selectedId===d.id) clearSelection(); else selectNode(d.id);
 });
 
-// 双击切换状态
-nodeSel.on('dblclick', (e, d) => {
+nodeSel.on('dblclick', (e,d) => {
   e.stopPropagation();
   const cycle = { todo:'learning', learning:'mastered', mastered:'todo' };
   setStatus(d.id, cycle[getStatus(d.id)]);
   applyStatus();
-  if (selectedId === d.id) selectNode(d.id); // 刷新面板状态按钮
+  if (selectedId===d.id) selectNode(d.id);
 });
 
-// 点击空白取消选中
 svg.on('click', () => { hideCtxMenu(); clearSelection(); });
 
-// 状态按钮
 document.querySelectorAll('.status-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     if (!selectedId) return;
@@ -544,26 +759,24 @@ document.querySelectorAll('.status-btn').forEach(btn => {
   });
 });
 
-// 笔记自动保存
 document.getElementById('detail-note').addEventListener('input', e => {
   if (!selectedId) return;
   notesMap[selectedId] = e.target.value;
   saveNotes(notesMap);
 });
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // 右键菜单
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 const ctxMenu = document.getElementById('ctx-menu');
 let ctxTargetId = null;
 
-nodeSel.on('contextmenu', (e, d) => {
-  e.preventDefault();
-  e.stopPropagation();
+nodeSel.on('contextmenu', (e,d) => {
+  e.preventDefault(); e.stopPropagation();
   ctxTargetId = d.id;
   ctxMenu.style.display = 'block';
-  ctxMenu.style.left = e.clientX + 'px';
-  ctxMenu.style.top  = e.clientY + 'px';
+  ctxMenu.style.left = e.clientX+'px';
+  ctxMenu.style.top  = e.clientY+'px';
 });
 
 document.querySelectorAll('.ctx-item').forEach(item => {
@@ -571,17 +784,17 @@ document.querySelectorAll('.ctx-item').forEach(item => {
     if (!ctxTargetId) return;
     setStatus(ctxTargetId, item.dataset.s);
     applyStatus();
-    if (selectedId === ctxTargetId) selectNode(ctxTargetId);
+    if (selectedId===ctxTargetId) selectNode(ctxTargetId);
     hideCtxMenu();
   });
 });
 
 window.addEventListener('click', hideCtxMenu);
-function hideCtxMenu() { ctxMenu.style.display = 'none'; ctxTargetId = null; }
+function hideCtxMenu() { ctxMenu.style.display='none'; ctxTargetId=null; }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // 搜索
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 document.getElementById('search').addEventListener('input', e => {
   const q = e.target.value.trim().toLowerCase();
   if (!q) { nodeSel.classed('dimmed', false); return; }
@@ -594,36 +807,31 @@ document.getElementById('search').addEventListener('keydown', e => {
   const found = nodes.find(n => n.label.toLowerCase().includes(q));
   if (found) {
     selectNode(found.id);
-    // 平移到节点
     const t = d3.zoomTransform(svg.node());
-    const tx = width()/2 - t.k * found.x;
-    const ty = height()/2 - t.k * found.y;
     svg.transition().duration(400).call(
       d3.zoom().transform,
-      d3.zoomIdentity.translate(tx, ty).scale(t.k)
+      d3.zoomIdentity.translate(width()/2 - t.k*found.x, height()/2 - t.k*found.y).scale(t.k)
     );
   }
 });
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // 截图
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 document.getElementById('btn-screenshot').addEventListener('click', async () => {
   const btn = document.getElementById('btn-screenshot');
   btn.textContent = '生成中…';
   try {
-    // 只截看板区域
     const dash = document.getElementById('dashboard');
-    const canvas = await html2canvas(dash, { backgroundColor:'#16192a', scale:2 });
+    const canvas = await html2canvas(dash, { backgroundColor:'#121520', scale:2 });
     const a = document.createElement('a');
-    a.download = `保研进度_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.png`;
+    a.download = `知识图谱进度_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.png`;
     a.href = canvas.toDataURL();
     a.click();
   } catch(err) { alert('截图失败：'+err.message); }
   btn.textContent = '📸 生成进度截图';
 });
 
-// 初始化看板位置
 document.getElementById('dashboard').classList.add('panel-hidden');
 </script>
 </body>
