@@ -31,16 +31,16 @@ svg { width:100%; height:100%; }
 .node.selected circle { stroke:#fff; stroke-width:2.5; }
 
 /* 分类颜色 */
-.cat-paper   circle { fill:#e05a6e; }
-.cat-course  circle { fill:#5a9ee0; }
-.cat-process circle { fill:#5ac97a; }
-.cat-interview circle { fill:#e0b85a; }
+.cat-paper    circle { fill:#e05a6e; }
+.cat-course   circle { fill:#5a9ee0; }
+.cat-coding   circle { fill:#5ac97a; }
+.cat-academic circle { fill:#e0b85a; }
 
 /* 状态叠加色 */
-.cat-paper.mastered   circle { fill:#ff8fa0; }
-.cat-course.mastered  circle { fill:#7ab8f5; }
-.cat-process.mastered circle { fill:#7ae09a; }
-.cat-interview.mastered circle { fill:#f5cf7a; }
+.cat-paper.mastered    circle { fill:#ff8fa0; }
+.cat-course.mastered   circle { fill:#7ab8f5; }
+.cat-coding.mastered   circle { fill:#7ae09a; }
+.cat-academic.mastered circle { fill:#f5cf7a; }
 
 /* 学习中节点描边 */
 .node.learning circle { stroke:#ffe066; stroke-width:2.5; }
@@ -109,8 +109,8 @@ svg { width:100%; height:100%; }
 .cat-bar-fill { height:100%; border-radius:3px; transition: width 0.4s; }
 .cat-bar-paper   { background:#e05a6e; }
 .cat-bar-course  { background:#5a9ee0; }
-.cat-bar-process { background:#5ac97a; }
-.cat-bar-interview { background:#e0b85a; }
+.cat-bar-coding  { background:#5ac97a; }
+.cat-bar-academic { background:#e0b85a; }
 #btn-screenshot {
   width:100%; margin-top:10px; padding:7px 0; border-radius:6px;
   background:#1e2235; border:1px solid #2a2d3e; color:#9ab;
@@ -186,25 +186,25 @@ svg { width:100%; height:100%; }
       <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-paper" id="bar-paper" style="width:0%"></div></div>
     </div>
     <div class="cat-progress">
-      <div class="cat-progress-label">🔵 专业课 <span id="pct-course">0%</span></div>
+      <div class="cat-progress-label">🔵 专业课基础 <span id="pct-course">0%</span></div>
       <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-course" id="bar-course" style="width:0%"></div></div>
     </div>
     <div class="cat-progress">
-      <div class="cat-progress-label">🟢 保研流程 <span id="pct-process">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-process" id="bar-process" style="width:0%"></div></div>
+      <div class="cat-progress-label">🟢 编程与实验 <span id="pct-coding">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-coding" id="bar-coding" style="width:0%"></div></div>
     </div>
     <div class="cat-progress">
-      <div class="cat-progress-label">🟡 面试准备 <span id="pct-interview">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-interview" id="bar-interview" style="width:0%"></div></div>
+      <div class="cat-progress-label">🟡 学术素养 <span id="pct-academic">0%</span></div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-academic" id="bar-academic" style="width:0%"></div></div>
     </div>
     <button id="btn-screenshot">📸 生成进度截图</button>
   </div>
 
   <div id="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#e05a6e"></div>论文技术</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#5a9ee0"></div>专业课</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#5ac97a"></div>保研流程</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e0b85a"></div>面试准备</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5a9ee0"></div>专业课基础</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5ac97a"></div>编程与实验</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e0b85a"></div>学术素养</div>
     <div class="legend-item"><div class="legend-dot" style="background:#444; border:1px solid #ffe066"></div>学习中</div>
     <div class="legend-item"><div class="legend-dot" style="background:#5ac97a; box-shadow:0 0 5px #5ac97a"></div>已掌握</div>
   </div>
@@ -288,104 +288,111 @@ const NODES = [
   { id:"conv",     label:"卷积神经网络",   cat:"course",    desc:"卷积层(卷积核/步长/填充/输出尺寸)，池化层(Max/Avg)，全连接层，经典网络：LeNet/AlexNet/VGG/ResNet/MobileNet。" },
   { id:"transformer", label:"Transformer", cat:"course",    desc:"Self-Attention O(n²d)，多头注意力，位置编码，Encoder-Decoder结构，LayerNorm，FFN。是CoES/ESMCT的基础架构。" },
 
-  // ── 保研流程 (cat: process) ──
-  { id:"summer",   label:"夏令营",         cat:"process",   desc:"一般5-8月，各学校官网报名，提交材料（成绩单/科研经历/推荐信），通过初审后参加笔试+面试，优秀营员获优营offer。" },
-  { id:"preyoumian",label:"预推免",        cat:"process",   desc:"9月中旬预推免系统开放，填报志愿，各学校组织复试。与夏令营offer可同时持有，预推免结束后统一确认。" },
-  { id:"contact",  label:"联系导师",       cat:"process",   desc:"提前联系意向导师，展示科研背景，获得导师意向接收。邮件结构：自我介绍+研究背景+为何选择该导师+附件(简历/成绩单)。" },
-  { id:"materials",label:"材料准备",       cat:"process",   desc:"成绩单（加盖公章）、英语成绩（CET-4/6或托福雅思）、推荐信（2-3封）、个人简历、科研经历描述、研究计划书。" },
-  { id:"recom",    label:"推荐信",         cat:"process",   desc:"一般需要2-3封，来自指导老师、课程教授。要求：有学校信头、教授签名、描述你的科研能力和品格。提前1-2个月请老师写。" },
-  { id:"research_plan",label:"研究计划书", cat:"process",   desc:"说明你未来3年想研究什么、为什么感兴趣、如何实施。要结合目标导师的研究方向，不超过1000字，逻辑清晰即可。" },
-  { id:"gpa",      label:"GPA与成绩单",   cat:"process",   desc:"大多数学校要求专业排名前30%或GPA≥3.5/4.0。重点课程（数学、专业核心课）成绩尤其重要，要单独列出。" },
-  { id:"english",  label:"英语成绩",       cat:"process",   desc:"CET-6>500分较有竞争力，部分学校接受CET-4。有些顶校要求托福/雅思（出国联培项目必须）。面试可能有英文自我介绍。" },
-  { id:"cv",       label:"个人简历",       cat:"process",   desc:"1页A4，包含：教育背景、科研经历（项目描述+成果）、获奖情况、技能（编程语言/工具）、发表论文（如有）。" },
-  { id:"timeline", label:"时间线规划",     cat:"process",   desc:"3月：联系导师，准备材料→5-8月：参加夏令营→9月15日：预推免系统开放→9月底：志愿确认截止→10月：录取通知。" },
+  // ── 编程与实验 (cat: coding) ──
+  { id:"python",      label:"Python熟练度",  cat:"coding",    desc:"列表推导式、装饰器、生成器、上下文管理器、类型注解。科研常用库：NumPy向量化操作、Pandas数据处理、Matplotlib可视化。" },
+  { id:"pytorch",     label:"PyTorch",        cat:"coding",    desc:"Tensor操作、autograd自动微分、nn.Module、DataLoader、自定义Loss。调试技巧：assert tensor.shape、中间梯度打印。" },
+  { id:"git",         label:"Git版本控制",    cat:"coding",    desc:"commit/branch/merge/rebase，GitHub协作（fork→PR→review），实验代码用分支隔离，配合.gitignore排除大文件和缓存。" },
+  { id:"linux",       label:"Linux基础",      cat:"coding",    desc:"常用命令：ls/cd/cp/mv/grep/find/ps/kill/nohup。服务器使用：ssh连接、tmux会话保持、scp传文件、环境变量配置。" },
+  { id:"server",      label:"服务器使用",     cat:"coding",    desc:"GPU资源管理(nvidia-smi/watch)，conda虚拟环境隔离，SLURM调度系统(sbatch/squeue)，训练任务后台运行(nohup/tmux)。" },
+  { id:"exp_mgmt",    label:"实验管理",       cat:"coding",    desc:"用wandb/tensorboard记录loss曲线，实验配置用yaml管理，每次实验建独立目录保存checkpoint和log，写实验记录防止遗忘。" },
+  { id:"debug",       label:"代码调试",       cat:"coding",    desc:"pdb断点调试，assert检查shape/dtype，打印中间变量验证逻辑。梯度不更新的常见原因：loss.item()截断/optimizer.zero_grad()遗漏。" },
+  { id:"env",         label:"环境配置",       cat:"coding",    desc:"conda/pip依赖管理，requirements.txt和environment.yml，CUDA版本与PyTorch版本对应，Docker容器化保证实验可复现。" },
 
-  // ── 面试准备 (cat: interview) ──
-  { id:"selfintro",  label:"自我介绍",     cat:"interview", desc:"2-3分钟，结构：姓名+学校+专业→核心科研经历（论文重点）→技术能力→为何报考该学校/方向。要自然流畅，不要背稿。" },
-  { id:"paper_talk", label:"论文讲解",     cat:"interview", desc:"核心环节。准备：背景动机→创新点（RefConv/CoES/ESMCT）→实验结果→个人贡献。预期追问：为什么这样设计、和baseline对比、局限性。" },
-  { id:"qa_prep",    label:"专业课问答",   cat:"interview", desc:"高频：手撕排序、图的BFS/DFS、进程vs线程、TCP握手挥手、梯度消失、Attention复杂度。回答要先说思路再写代码。" },
-  { id:"tianmei",    label:"田媚老师档案", cat:"interview", desc:"北交大计算机学院副教授。研究方向：机器学习+计算机视觉+智能感知。代表项目：高铁轮轨检测（三维点云）、眼动追踪ASD识别。H指数11。" },
-  { id:"bjtu",       label:"北交大计算机学院",cat:"interview",desc:"北京交通大学计算机与信息技术学院，985/211。田媚老师所在学院，主要招生方向：计算机科学与技术、人工智能。" },
-  { id:"eng_intro",  label:"英文自我介绍", cat:"interview", desc:"1分钟英文版本。Hi, I'm ... a final-year student majoring in ... My research focuses on ... 语速放慢，发音清晰比词汇华丽更重要。" },
+  // ── 学术素养 (cat: academic) ──
+  { id:"paper_search",label:"论文检索",       cat:"academic",  desc:"Google Scholar/arXiv/Semantic Scholar检索技巧，关键词组合，引用追踪（引用了谁/被谁引用），订阅顶会(CVPR/ACL/NeurIPS/ICLR)更新。" },
+  { id:"paper_read",  label:"论文精读",       cat:"academic",  desc:"三遍读法：①快扫(摘要/图表/结论判断价值)→②通读(理解方法和实验)→③精读(推导细节/复现关键实验)。重点看problem formulation和ablation。" },
+  { id:"field_survey",label:"领域视野",       cat:"academic",  desc:"了解方向发展脉络：经典baseline→近3年SOTA→当前open problem。用paperwithcode追踪benchmark，画技术演进时间线。" },
+  { id:"idea",        label:"想Idea",         cat:"academic",  desc:"从问题出发：现有方法的局限性在哪？什么假设能解决？类比其他领域方法。好idea要有motivation：为什么这样设计比baseline好。" },
+  { id:"latex",       label:"LaTeX写作",      cat:"academic",  desc:"论文写作必备：equation/figure/table/algorithm环境，biblatex参考文献管理，Overleaf在线协作，图表要矢量格式(.pdf/.eps)。" },
+  { id:"paper_write", label:"论文写作",       cat:"academic",  desc:"结构：Abstract→Intro→Related Work→Method→Experiments→Conclusion。先写Method和Experiments，最后写Abstract和Intro，每句话有作用。" },
+  { id:"rebuttal",    label:"Rebuttal",       cat:"academic",  desc:"审稿意见逐条回应，态度诚恳。对合理质疑：承认并补充实验；对误解：礼貌澄清+指出对应文中位置。48小时内提交最优。" },
+  { id:"slides",      label:"学术报告",       cat:"academic",  desc:"组会汇报/论文展示：一页一核心点，图示优先文字，动画不花哨。讲paper：背景→问题→方法→结果→局限性，时间控制严格。" },
+  { id:"ref_mgmt",    label:"文献管理",       cat:"academic",  desc:"Zotero管理文献（分类标签+注释），导出bibtex用于LaTeX，阅读时记录：核心贡献、创新点、局限性、可借鉴方法。" },
 ];
 
 const EDGES = [
   // 论文技术内部关联
-  { s:"gesture",   t:"refconv" },
-  { s:"gesture",   t:"simsru" },
-  { s:"gesture",   t:"skeleton" },
-  { s:"gesture",   t:"augment" },
-  { s:"refconv",   t:"reparam" },
-  { s:"refconv",   t:"groupconv" },
-  { s:"refconv",   t:"resnext" },
-  { s:"reparam",   t:"groupconv" },
-  { s:"resnext",   t:"groupconv" },
-  { s:"attention", t:"transformer" },
-  { s:"simsru",    t:"dl_basic" },
-  { s:"coes",      t:"cot" },
-  { s:"coes",      t:"rag" },
-  { s:"coes",      t:"comet" },
-  { s:"coes",      t:"llmft" },
-  { s:"coes",      t:"esconv" },
-  { s:"esmct",     t:"mcts" },
-  { s:"esmct",     t:"cot" },
-  { s:"esmct",     t:"hillmodel" },
-  { s:"esmct",     t:"esconv" },
-  { s:"esmct",     t:"llmft" },
-  { s:"mcts",      t:"ml_basic" },
-  { s:"rag",       t:"transformer" },
-  { s:"llmft",     t:"transformer" },
-  { s:"llmft",     t:"dl_basic" },
+  { s:"gesture",      t:"refconv" },
+  { s:"gesture",      t:"simsru" },
+  { s:"gesture",      t:"skeleton" },
+  { s:"gesture",      t:"augment" },
+  { s:"refconv",      t:"reparam" },
+  { s:"refconv",      t:"groupconv" },
+  { s:"refconv",      t:"resnext" },
+  { s:"reparam",      t:"groupconv" },
+  { s:"resnext",      t:"groupconv" },
+  { s:"attention",    t:"transformer" },
+  { s:"simsru",       t:"dl_basic" },
+  { s:"coes",         t:"cot" },
+  { s:"coes",         t:"rag" },
+  { s:"coes",         t:"comet" },
+  { s:"coes",         t:"llmft" },
+  { s:"coes",         t:"esconv" },
+  { s:"esmct",        t:"mcts" },
+  { s:"esmct",        t:"cot" },
+  { s:"esmct",        t:"hillmodel" },
+  { s:"esmct",        t:"esconv" },
+  { s:"esmct",        t:"llmft" },
+  { s:"mcts",         t:"ml_basic" },
+  { s:"rag",          t:"transformer" },
+  { s:"llmft",        t:"transformer" },
+  { s:"llmft",        t:"dl_basic" },
   // 专业课内部关联
-  { s:"ds",        t:"sort" },
-  { s:"ds",        t:"tree" },
-  { s:"ds",        t:"graph_ds" },
-  { s:"tree",      t:"sort" },
-  { s:"os",        t:"process" },
-  { s:"os",        t:"schedule" },
-  { s:"os",        t:"memory" },
-  { s:"network",   t:"tcpip" },
-  { s:"network",   t:"http" },
-  { s:"ca",        t:"cache" },
-  { s:"ca",        t:"pipeline" },
-  { s:"ml_basic",  t:"dl_basic" },
-  { s:"dl_basic",  t:"conv" },
-  { s:"dl_basic",  t:"transformer" },
-  { s:"conv",      t:"attention" },
+  { s:"ds",           t:"sort" },
+  { s:"ds",           t:"tree" },
+  { s:"ds",           t:"graph_ds" },
+  { s:"tree",         t:"sort" },
+  { s:"os",           t:"process" },
+  { s:"os",           t:"schedule" },
+  { s:"os",           t:"memory" },
+  { s:"network",      t:"tcpip" },
+  { s:"network",      t:"http" },
+  { s:"ca",           t:"cache" },
+  { s:"ca",           t:"pipeline" },
+  { s:"ml_basic",     t:"dl_basic" },
+  { s:"dl_basic",     t:"conv" },
+  { s:"dl_basic",     t:"transformer" },
+  { s:"conv",         t:"attention" },
   // 论文↔专业课
-  { s:"refconv",   t:"conv" },
-  { s:"resnext",   t:"conv" },
-  { s:"attention", t:"dl_basic" },
-  { s:"coes",      t:"transformer" },
-  { s:"esmct",     t:"ml_basic" },
-  { s:"llmft",     t:"transformer" },
-  // 保研流程内部
-  { s:"timeline",  t:"summer" },
-  { s:"timeline",  t:"preyoumian" },
-  { s:"summer",    t:"materials" },
-  { s:"preyoumian",t:"materials" },
-  { s:"materials", t:"recom" },
-  { s:"materials", t:"gpa" },
-  { s:"materials", t:"english" },
-  { s:"materials", t:"cv" },
-  { s:"materials", t:"research_plan" },
-  { s:"contact",   t:"cv" },
-  // 面试↔其他
-  { s:"paper_talk",t:"refconv" },
-  { s:"paper_talk",t:"coes" },
-  { s:"paper_talk",t:"esmct" },
-  { s:"selfintro", t:"paper_talk" },
-  { s:"selfintro", t:"contact" },
-  { s:"qa_prep",   t:"ds" },
-  { s:"qa_prep",   t:"os" },
-  { s:"qa_prep",   t:"network" },
-  { s:"qa_prep",   t:"ml_basic" },
-  { s:"tianmei",   t:"bjtu" },
-  { s:"tianmei",   t:"attention" },
-  { s:"bjtu",      t:"contact" },
-  { s:"eng_intro", t:"selfintro" },
-  { s:"summer",    t:"selfintro" },
-  { s:"preyoumian",t:"selfintro" },
+  { s:"refconv",      t:"conv" },
+  { s:"resnext",      t:"conv" },
+  { s:"attention",    t:"dl_basic" },
+  { s:"coes",         t:"transformer" },
+  { s:"esmct",        t:"ml_basic" },
+  { s:"llmft",        t:"transformer" },
+  // 编程与实验内部关联
+  { s:"pytorch",      t:"python" },
+  { s:"server",       t:"linux" },
+  { s:"exp_mgmt",     t:"pytorch" },
+  { s:"exp_mgmt",     t:"git" },
+  { s:"debug",        t:"pytorch" },
+  { s:"env",          t:"linux" },
+  { s:"env",          t:"server" },
+  // 编程↔论文技术 & 专业课
+  { s:"pytorch",      t:"dl_basic" },
+  { s:"pytorch",      t:"conv" },
+  { s:"pytorch",      t:"transformer" },
+  { s:"exp_mgmt",     t:"ml_basic" },
+  { s:"python",       t:"ml_basic" },
+  // 学术素养内部关联
+  { s:"paper_read",   t:"paper_search" },
+  { s:"field_survey", t:"paper_read" },
+  { s:"idea",         t:"field_survey" },
+  { s:"paper_write",  t:"latex" },
+  { s:"paper_write",  t:"ref_mgmt" },
+  { s:"rebuttal",     t:"paper_write" },
+  { s:"slides",       t:"paper_write" },
+  { s:"ref_mgmt",     t:"paper_search" },
+  // 学术↔论文技术
+  { s:"paper_read",   t:"coes" },
+  { s:"paper_read",   t:"refconv" },
+  { s:"idea",         t:"rag" },
+  { s:"idea",         t:"mcts" },
+  { s:"paper_write",  t:"coes" },
+  { s:"field_survey", t:"transformer" },
+  // 学术↔编程
+  { s:"exp_mgmt",     t:"paper_write" },
+  { s:"debug",        t:"idea" },
 ];
 
 // ═══════════════════════════════════════════════
@@ -417,7 +424,7 @@ function setStatus(id, s) {
 // ═══════════════════════════════════════════════
 // D3 图谱
 // ═══════════════════════════════════════════════
-const CAT_LABELS = { paper:'论文技术', course:'专业课(408)', process:'保研流程', interview:'面试准备' };
+const CAT_LABELS = { paper:'论文技术', course:'专业课基础', coding:'编程与实验', academic:'学术素养' };
 const nodes = NODES.map(d => ({...d}));
 const links = EDGES.map(d => ({ source: d.s, target: d.t }));
 
@@ -495,7 +502,7 @@ function applyStatus() {
 }
 
 function updateDashboard() {
-  const cats = ['paper','course','process','interview'];
+  const cats = ['paper','course','coding','academic'];
   const total = nodes.length;
   const mastered = nodes.filter(n => getStatus(n.id) === 'mastered').length;
   document.getElementById('dash-total-label').textContent = `已掌握 ${mastered} / ${total} 个知识点`;
