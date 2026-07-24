@@ -335,12 +335,12 @@ const QUIZ_DATA = {
   ],
   "concept-bayes": [
     { q:"贝叶斯定理 P(A|B) = ？", opts:["P(B|A)·P(B)/P(A)","P(B|A)·P(A)/P(B)","P(A)·P(B)","P(A∩B)/P(A)"], ans:1, explain:"贝叶斯定理：P(A|B) = P(B|A)·P(A) / P(B)，其中 P(A) 是先验，P(B|A) 是似然，P(B) 是证据。" },
-    { q:"朴素贝叶斯分类器的"朴素"假设是指？", opts:["特征之间条件独立","所有特征等权重","先验概率相等","只使用二元特征"], ans:0, explain:"朴素贝叶斯假设在给定类别的条件下，所有特征相互独立，简化了联合概率的计算。" },
+    { q:'朴素贝叶斯分类器的"朴素"假设是指？', opts:["特征之间条件独立","所有特征等权重","先验概率相等","只使用二元特征"], ans:0, explain:"朴素贝叶斯假设在给定类别的条件下，所有特征相互独立，简化了联合概率的计算。" },
     { q:"贝叶斯网络中，节点之间的有向边表示？", opts:["因果或条件依赖关系","相关性","时间顺序","功能依赖"], ans:0, explain:"贝叶斯网络中有向边 A→B 表示 A 直接影响 B（条件依赖），但不一定是严格因果关系。" },
     { q:"变量消元法（Variable Elimination）用于？", opts:["学习网络结构","精确推断边际概率","生成随机样本","压缩网络规模"], ans:1, explain:"变量消元是贝叶斯网络中的精确推断算法，通过依次消去非查询变量来计算边际概率。" }
   ],
   "concept-knowledge-repr": [
-    { q:"一阶逻辑（FOL）相比命题逻辑的主要扩展是？", opts:["支持概率推理","引入量词（∀, ∃）和谓词","支持时态逻辑","允许模糊真值"], ans:1, explain:"FOL 引入了全称量词和存在量词，以及谓词和函数，使表达能力远强于命题逻辑。" },
+    { q:"一阶逻辑（FOL）相比命题逻辑的主要扩展是？", opts:["支持概率推理","引入量词和谓词","支持时态逻辑","允许模糊真值"], ans:1, explain:"FOL 引入了全称量词和存在量词，以及谓词和函数，使表达能力远强于命题逻辑。" },
     { q:"Horn 子句的特点是？", opts:["最多一个正文字","恰好两个正文字","所有文字为负","可以有任意多个正文字"], ans:0, explain:"Horn 子句最多包含一个正文字（非否定文字），是逻辑程序设计（如 Prolog）的基础。" },
     { q:"知识图谱中 RDF 三元组的结构是？", opts:["主语-谓语-宾语","实体-关系-实体","类-属性-值","节点-边-节点"], ans:0, explain:"RDF 使用三元组（主语、谓语、宾语）来表示知识，例如（北京, 是首都, 中国）。" },
     { q:"归结原理（Resolution）是一种？", opts:["搜索算法","完备的推理规则","概率推断方法","神经网络训练方法"], ans:1, explain:"归结原理是一种用于一阶逻辑的完备推理规则，通过消解互补文字来导出新子句。" }
@@ -355,13 +355,13 @@ const QUIZ_DATA = {
     { q:"高斯滤波的主要作用是？", opts:["锐化图像边缘","平滑图像、去除噪声","增强对比度","检测边缘"], ans:1, explain:"高斯滤波通过加权平均邻域像素来平滑图像，有效去除高频噪声。" },
     { q:"Sobel 算子用于？", opts:["图像平滑","颜色空间转换","边缘检测（计算图像梯度）","图像压缩"], ans:2, explain:"Sobel 算子通过计算图像在水平和垂直方向的梯度来检测边缘。" },
     { q:"直方图均衡化的目的是？", opts:["减少图像文件大小","增强图像对比度","去除图像噪声","检测图像中的物体"], ans:1, explain:"直方图均衡化重新分配像素强度，使强度分布更均匀，从而增强图像的整体对比度。" },
-    { q:"HSV 色彩空间中 S 代表？", opts:["亮度（Brightness）","饱和度（Saturation）","色相（Hue）","阴影（Shadow）"], ans:1, explain:"HSV 分别代表色相（Hue）、饱和度（Saturation）、明度（Value），S 表示颜色的纯度。" }
+    { q:"HSV 色彩空间中 S 代表？", opts:["亮度","饱和度（Saturation）","色相（Hue）","阴影"], ans:1, explain:"HSV 分别代表色相（Hue）、饱和度（Saturation）、明度（Value），S 表示颜色的纯度。" }
   ],
   "concept-feature-extract": [
     { q:"SIFT 特征的主要优点是？", opts:["计算速度快","对尺度、旋转、光照变化具有不变性","只适用于彩色图像","需要 GPU 加速"], ans:1, explain:"SIFT 对图像的尺度缩放、旋转和光照变化具有鲁棒性，是经典的手工特征描述子。" },
     { q:"HOG（方向梯度直方图）特征主要用于？", opts:["图像分类","行人/物体检测","图像分割","图像生成"], ans:1, explain:"HOG 通过统计局部区域的梯度方向分布来描述形状，是行人检测等任务中的经典特征。" },
     { q:"特征金字塔网络（FPN）的作用是？", opts:["加速特征提取","融合多尺度特征以检测不同大小的物体","减少模型参数","只提取高层语义特征"], ans:1, explain:"FPN 通过自顶向下路径和横向连接融合不同尺度的特征图，使检测器能同时处理大小不同的目标。" },
-    { q:"单应性矩阵（Homography）描述的是？", opts:["两幅图像之间的仿射变换","同一平面在不同视角下的投影变换","图像的旋转变换","颜色空间的映射"], ans:1, explain:"单应性矩阵是一个 3×3 矩阵，描述同一平面场景在两个不同视角下的图像间的映射关系。" }
+    { q:"单应性矩阵（Homography）描述的是？", opts:["两幅图像之间的仿射变换","同一平面在不同视角下的投影变换","图像的旋转变换","颜色空间的映射"], ans:1, explain:"单应性矩阵是一个 3x3 矩阵，描述同一平面场景在两个不同视角下的图像间的映射关系。" }
   ],
   "concept-detection": [
     { q:"Faster R-CNN 中 RPN 的作用是？", opts:["提取图像特征","生成候选目标区域","对候选区域进行分类","计算损失函数"], ans:1, explain:"RPN 在共享的卷积特征图上预测每个位置的锚框是否包含目标，并输出精修的候选框。" },
@@ -382,26 +382,26 @@ const QUIZ_DATA = {
     { q:"梯度裁剪（Gradient Clipping）主要解决什么问题？", opts:["梯度消失","梯度爆炸","学习率过小","过拟合"], ans:1, explain:"梯度裁剪通过限制梯度的范数不超过某阈值，防止 RNN 等网络中出现的梯度爆炸问题。" }
   ],
   "concept-convex": [
-    { q:"凸函数满足的条件是？", opts:["f(λx+(1-λ)y) ≥ λf(x)+(1-λ)f(y)","f(λx+(1-λ)y) ≤ λf(x)+(1-λ)f(y)","f''(x) < 0","f'(x) = 0"], ans:1, explain:"凸函数定义：对任意 x,y 和 λ∈[0,1]，f(λx+(1-λ)y) ≤ λf(x)+(1-λ)f(y)，即弦在函数图像上方。" },
+    { q:"凸函数满足的条件是？", opts:["f(ax+(1-a)y) >= af(x)+(1-a)f(y)","f(ax+(1-a)y) <= af(x)+(1-a)f(y)","f''(x) < 0","f'(x) = 0"], ans:1, explain:"凸函数定义：对任意 x,y 和 a 属于 [0,1]，f(ax+(1-a)y) <= af(x)+(1-a)f(y)，即弦在函数图像上方。" },
     { q:"KKT 条件用于解决？", opts:["无约束优化","带不等式约束的优化问题","线性方程组","概率推断"], ans:1, explain:"KKT（Karush-Kuhn-Tucker）条件是带不等式和等式约束的优化问题的一阶必要最优性条件。" },
-    { q:"对偶问题（Dual Problem）的特点是？", opts:["与原问题完全等价","对偶最优值≤原问题最优值（弱对偶），强对偶时相等","对偶问题总是更难求解","只适用于线性规划"], ans:1, explain:"弱对偶定理：对偶问题的最优值总是原问题最优值的下界；满足约束规范时强对偶成立，两者相等。" },
+    { q:"对偶问题（Dual Problem）的特点是？", opts:["与原问题完全等价","对偶最优值不超过原问题最优值（弱对偶），强对偶时相等","对偶问题总是更难求解","只适用于线性规划"], ans:1, explain:"弱对偶定理：对偶问题的最优值总是原问题最优值的下界；满足约束规范时强对偶成立，两者相等。" },
     { q:"次梯度（Subgradient）用于处理？", opts:["光滑凸函数","不可微凸函数（如 L1 范数）","非凸问题","随机优化"], ans:1, explain:"次梯度是梯度在不可微点的推广，用于优化不光滑的凸函数（如 Lasso）。" }
   ],
   "concept-second-order": [
     { q:"牛顿法相比梯度下降的优势是？", opts:["计算更简单","利用曲率信息（Hessian），收敛速度更快（二次收敛）","不需要计算导数","适合大规模问题"], ans:1, explain:"牛顿法利用 Hessian 矩阵（二阶导数）的信息来自适应调整步长方向，在凸问题上具有二次收敛速度。" },
-    { q:"L-BFGS 相比 BFGS 的改进是？", opts:["更精确的 Hessian 近似","只存储最近 m 次迭代的信息（低内存），适合大规模问题","收敛速度更快","不需要线搜索"], ans:1, explain:"L-BFGS 只存储最近几步的梯度差和参数差来隐式近似 Hessian 逆，内存需求从 O(n²) 降到 O(mn)。" },
-    { q:"深度学习中很少使用纯牛顿法的原因是？", opts:["精度不够","计算和存储 Hessian 矩阵的代价为 O(n²)，参数量大时不可行","不适合非凸问题","收敛速度太慢"], ans:1, explain:"对于百万级参数的深度网络，存储 Hessian 需要 O(n²) 空间，计算其逆需要 O(n³) 时间，计算上不可行。" },
+    { q:"L-BFGS 相比 BFGS 的改进是？", opts:["更精确的 Hessian 近似","只存储最近 m 次迭代的信息（低内存），适合大规模问题","收敛速度更快","不需要线搜索"], ans:1, explain:"L-BFGS 只存储最近几步的梯度差和参数差来隐式近似 Hessian 逆，内存需求大幅降低。" },
+    { q:"深度学习中很少使用纯牛顿法的原因是？", opts:["精度不够","计算和存储 Hessian 矩阵代价极高，参数量大时不可行","不适合非凸问题","收敛速度太慢"], ans:1, explain:"对于百万级参数的深度网络，存储 Hessian 需要极大空间，计算其逆时间复杂度也极高。" },
     { q:"共轭梯度法（Conjugate Gradient）的特点是？", opts:["需要计算 Hessian","每次迭代选择与之前搜索方向共轭的新方向，避免重复搜索","总是比梯度下降慢","只适用于非线性问题"], ans:1, explain:"共轭梯度法保证每次搜索方向与之前所有方向共轭，对 n 维二次问题最多 n 步收敛。" }
   ],
   "concept-regularization": [
     { q:"Dropout 在训练时的作用是？", opts:["加速前向传播","随机将神经元输出置零，防止过拟合","增加模型容量","用于批归一化"], ans:1, explain:"Dropout 在每次前向传播时随机将部分神经元输出设为零，相当于训练多个子网络的集成，有效防止过拟合。" },
     { q:"Batch Normalization 的主要作用是？", opts:["减少参数数量","规范化每层输入分布，加速训练、稳定梯度","替代激活函数","用于数据预处理"], ans:1, explain:"BN 通过归一化每个 mini-batch 的激活值，缓解内部协变量偏移，允许使用更大学习率。" },
     { q:"Early Stopping 的依据是？", opts:["训练损失达到某阈值","验证集损失开始上升时停止训练","训练轮数达到上限","梯度范数足够小"], ans:1, explain:"Early Stopping 监控验证集损失，当其不再下降甚至上升时停止训练，防止模型在训练集上过拟合。" },
-    { q:"VC 维（VC Dimension）衡量的是？", opts:["模型的参数数量","假设空间的复杂度（能打散的最大样本集大小）","训练集大小","泛化误差的上界"], ans:1, explain:"VC 维是衡量分类器复杂度的指标，定义为能被该分类器打散（任意标记）的最大点集大小，影响泛化误差界。" }
+    { q:"VC 维（VC Dimension）衡量的是？", opts:["模型的参数数量","假设空间的复杂度（能打散的最大样本集大小）","训练集大小","泛化误差的上界"], ans:1, explain:"VC 维是衡量分类器复杂度的指标，定义为能被该分类器打散的最大点集大小，影响泛化误差界。" }
   ],
   "concept-cnn": [
     { q:"卷积层中的感受野（Receptive Field）是指？", opts:["卷积核的大小","输出特征图中一个元素对应输入图像的区域大小","特征图的通道数","步幅的大小"], ans:1, explain:"感受野是输出特征图中某一位置的神经元所能看到的输入图像区域，随网络深度增加而扩大。" },
-    { q:"ResNet 引入残差连接（Skip Connection）解决了什么问题？", opts:["过拟合","梯度消失/爆炸问题，使深层网络可训练","计算速度慢","参数冗余"], ans:1, explain:"残差连接通过 F(x)+x 的形式为梯度提供捷径，缓解深层网络中的梯度消失问题。" },
+    { q:"ResNet 引入残差连接解决了什么问题？", opts:["过拟合","梯度消失/爆炸问题，使深层网络可训练","计算速度慢","参数冗余"], ans:1, explain:"残差连接通过 F(x)+x 的形式为梯度提供捷径，缓解深层网络中的梯度消失问题。" },
     { q:"深度可分离卷积相比标准卷积的优势是？", opts:["精度更高","大幅减少计算量和参数量","更容易训练","不需要激活函数"], ans:1, explain:"深度可分离卷积将标准卷积分解为逐通道卷积和逐点卷积，计算量约减少 8-9 倍。" },
     { q:"最大池化（Max Pooling）的主要作用是？", opts:["增加特征图分辨率","降低空间分辨率，提供位置不变性，减少计算量","增加通道数","进行特征归一化"], ans:1, explain:"最大池化在局部区域取最大值，降低特征图的空间分辨率，提供一定的平移不变性，并减少后续层的计算量。" }
   ],
@@ -409,13 +409,13 @@ const QUIZ_DATA = {
     { q:"Self-Attention 中 Q、K、V 分别代表？", opts:["Queue、Key、Value","Query、Key、Value","Question、Knowledge、Vision","Query、Kernel、Vector"], ans:1, explain:"在 Self-Attention 中，Q（Query）、K（Key）、V（Value）均从同一输入线性变换得到，通过 Q·K^T 计算注意力权重后加权求和 V。" },
     { q:"Transformer 使用位置编码的原因是？", opts:["减少计算量","自注意力机制本身不包含位置信息，需要显式注入","替代归一化层","增加模型容量"], ans:1, explain:"Self-Attention 对输入的顺序不敏感，位置编码通过向嵌入中加入位置信息，使模型能区分不同位置的 token。" },
     { q:"BERT 与 GPT 的主要架构区别是？", opts:["BERT 更深","BERT 是双向编码器（Encoder），GPT 是单向解码器（Decoder）","BERT 使用卷积层","GPT 不使用注意力机制"], ans:1, explain:"BERT 基于 Transformer Encoder，使用双向注意力；GPT 基于 Decoder，使用单向（因果）注意力。" },
-    { q:"Vision Transformer（ViT）处理图像的方式是？", opts:["直接对像素使用注意力","将图像分割为固定大小的 Patch 并展平为序列","使用卷积提取特征后送入 Transformer","只处理图像边缘信息"], ans:1, explain:"ViT 将图像切分为 16×16 的 Patch，每个 Patch 展平后经线性投影得到 token 嵌入，送入标准 Transformer Encoder。" }
+    { q:"Vision Transformer（ViT）处理图像的方式是？", opts:["直接对像素使用注意力","将图像分割为固定大小的 Patch 并展平为序列","使用卷积提取特征后送入 Transformer","只处理图像边缘信息"], ans:1, explain:"ViT 将图像切分为 16x16 的 Patch，每个 Patch 展平后经线性投影得到 token 嵌入，送入标准 Transformer Encoder。" }
   ],
   "concept-generative": [
     { q:"VAE 训练目标 ELBO 由哪两项组成？", opts:["重建损失 + KL 散度","交叉熵 + L2 正则","对抗损失 + 重建损失","KL 散度 + 对抗损失"], ans:0, explain:"ELBO = 重建损失（期望对数似然）- KL(q(z|x)||p(z))，最大化 ELBO 等价于最大化数据对数似然的下界。" },
-    { q:"GAN 训练中"模式崩溃"（Mode Collapse）是指？", opts:["判别器损失为零","生成器只生成有限几种输出，无法覆盖真实数据分布","训练不收敛","生成图像质量差"], ans:1, explain:"模式崩溃指生成器找到能欺骗判别器的少数几种输出并反复生成，导致生成分布只覆盖真实分布的部分模式。" },
+    { q:'GAN 训练中"模式崩溃"（Mode Collapse）是指？', opts:["判别器损失为零","生成器只生成有限几种输出，无法覆盖真实数据分布","训练不收敛","生成图像质量差"], ans:1, explain:"模式崩溃指生成器找到能欺骗判别器的少数几种输出并反复生成，导致生成分布只覆盖真实分布的部分模式。" },
     { q:"扩散模型（Diffusion Model）的核心思想是？", opts:["通过对抗训练生成图像","逐步向数据加噪（正向过程），再学习逐步去噪（逆向过程）","直接从随机噪声映射到图像","通过变分推断学习潜在空间"], ans:1, explain:"扩散模型定义正向过程逐步将数据变为高斯噪声，然后训练神经网络学习逆向去噪过程，推理时从纯噪声逐步采样。" },
-    { q:"Flow-based 模型的特点是？", opts:["需要判别器","使用可逆变换，可以精确计算数据的对数似然","训练不稳定","只适合低维数据"], ans:1, explain:"Flow-based 模型使用一系列可逆（双射）变换将简单分布映射到数据分布，利用变量替换公式精确计算似然。" }
+    { q:"Flow-based 模型的特点是？", opts:["需要判别器","使用可逆变换，可以精确计算数据的对数似然","训练不稳定","只适合低维数据"], ans:1, explain:"Flow-based 模型使用一系列可逆变换将简单分布映射到数据分布，利用变量替换公式精确计算似然。" }
   ],
   "concept-rl": [
     { q:"MDP 的马尔可夫性质是指？", opts:["奖励只与当前状态有关","下一状态只依赖当前状态和动作，与历史无关","智能体的策略是确定性的","环境是完全可观测的"], ans:1, explain:"马尔可夫性质：下一状态只由当前状态和动作决定，与历史无关。" },
@@ -427,7 +427,7 @@ const QUIZ_DATA = {
     { q:"策略梯度方法与基于值函数方法的主要区别是？", opts:["策略梯度方法更快","策略梯度直接优化策略参数，适合连续动作空间","策略梯度不需要奖励","策略梯度只适用于离散动作"], ans:1, explain:"策略梯度方法直接对策略参数求梯度并更新，自然处理连续动作空间。" },
     { q:"PPO 引入裁剪目标的原因是？", opts:["加速计算","限制每次策略更新的幅度，避免更新过大导致性能崩溃","增加探索","处理连续动作空间"], ans:1, explain:"PPO 的裁剪目标通过限制新旧策略的概率比在 [1-ε, 1+ε] 范围内，防止策略更新步长过大导致的训练不稳定。" },
     { q:"Actor-Critic 方法中 Actor 和 Critic 的作用分别是？", opts:["Actor 评估状态价值，Critic 生成动作","Actor 生成动作（策略），Critic 评估状态价值（值函数）","Actor 处理离散动作，Critic 处理连续动作","两者功能相同，只是网络不同"], ans:1, explain:"Actor 是策略网络，输出动作概率；Critic 是值函数网络，评估当前状态的价值，为 Actor 的更新提供基线。" },
-    { q:"SAC 的"Soft"体现在？", opts:["使用软标签","在奖励中加入策略熵项，鼓励探索（最大熵强化学习框架）","软更新目标网络","使用软激活函数"], ans:1, explain:"SAC 在优化目标中加入策略熵的正则项，使智能体在最大化累积奖励的同时保持策略的随机性（多样化探索）。" }
+    { q:'SAC（Soft Actor-Critic）的"Soft"体现在？', opts:["使用软标签","在奖励中加入策略熵项，鼓励探索（最大熵强化学习框架）","软更新目标网络","使用软激活函数"], ans:1, explain:"SAC 在优化目标中加入策略熵的正则项，使智能体在最大化累积奖励的同时保持策略的随机性（多样化探索）。" }
   ]
 };
 
@@ -447,6 +447,7 @@ const nodeById = Object.fromEntries(nodes.map(n => [n.id, n]));
 
 let selectedNode = null;
 let currentTab   = 'info';
+let activeFilter = 'all';
 
 const svg = d3.select('svg#graph');
 const W = () => window.innerWidth;
@@ -490,6 +491,7 @@ sim.on('tick', () => {
 
 function refreshNoteMarkers() {
   const data = loadData();
+  node.classed('has-note', d => !!(data[d.id]?.note?.trim()));
   node.select('circle')
     .attr('stroke', d => (data[d.id]?.note?.trim()) ? '#f59e0b' : '#fff')
     .attr('stroke-width', d => (data[d.id]?.note?.trim()) ? 2 : 1.5);
@@ -500,13 +502,15 @@ const tooltip = document.getElementById('hover-tooltip');
 node.on('mouseover',(e,d)=>{
   tooltip.style.display='block';
   tooltip.innerHTML=`<strong>${d.label}</strong><br><span style="color:#888;font-size:10px">${TYPE_LABEL[d.type]}</span>`;
-  d3.selectAll('.node').classed('dimmed',n=>n.id!==d.id);
+  d3.selectAll('.node').classed('dimmed',n=>n.id!==d.id)
+    .classed('hovered',n=>n.id===d.id)
+    .classed('hover-neighbor',n=>edges.some(e=>(e.source.id===d.id&&e.target.id===n.id)||(e.target.id===d.id&&e.source.id===n.id)));
   d3.selectAll('.link').classed('dimmed',e=>e.source.id!==d.id&&e.target.id!==d.id);
 }).on('mousemove',e=>{
   tooltip.style.left=(e.clientX+14)+'px'; tooltip.style.top=(e.clientY-10)+'px';
 }).on('mouseout',()=>{
   tooltip.style.display='none';
-  if(!selectedNode){d3.selectAll('.node').classed('dimmed',false);d3.selectAll('.link').classed('dimmed',false);}
+  if(!selectedNode){d3.selectAll('.node').classed('dimmed hovered hover-neighbor',false);d3.selectAll('.link').classed('dimmed',false);}
 });
 
 node.on('click',(e,d)=>{
@@ -516,7 +520,9 @@ node.on('click',(e,d)=>{
   const neighbors=new Set(edges.flatMap(e=>e.source.id===d.id?[e.target.id]:e.target.id===d.id?[e.source.id]:[]));
   d3.selectAll('.node')
     .classed('selected',n=>n.id===d.id)
-    .classed('dimmed',n=>n.id!==d.id&&!neighbors.has(n.id));
+    .classed('neighbor',n=>neighbors.has(n.id))
+    .classed('dimmed',n=>n.id!==d.id&&!neighbors.has(n.id))
+    .classed('hovered hover-neighbor',false);
   d3.selectAll('.link')
     .classed('active',e=>e.source.id===d.id||e.target.id===d.id)
     .classed('dimmed',e=>e.source.id!==d.id&&e.target.id!==d.id);
@@ -601,7 +607,7 @@ function saveNote(nodeId) {
 function closeDetail() {
   selectedNode=null;
   document.getElementById('detail').style.display='none';
-  d3.selectAll('.node').classed('selected dimmed',false);
+  d3.selectAll('.node').classed('selected neighbor dimmed hovered hover-neighbor',false);
   d3.selectAll('.link').classed('active dimmed',false);
 }
 
@@ -670,6 +676,7 @@ function submitQuiz() {
 function closeQuiz() { document.getElementById('quiz-modal').classList.remove('open'); }
 
 function filterType(type) {
+  activeFilter=type;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   const idMap={all:'btn-all',synthesis:'btn-synthesis',subject:'btn-subject',concept:'btn-concept',source:'btn-source'};
   const btn=document.getElementById(idMap[type]);
