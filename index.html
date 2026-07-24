@@ -1,607 +1,73 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>黄涵钰的知识库</title>
+<title>基础课学习系统</title>
 <style>
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
-:root {
-  --bg: #f7f8fc;
-  --surface: #ffffff;
-  --border: #e8eaf0;
-  --text: #1a1d2e;
-  --text2: #6b7080;
-  --text3: #a0a5b8;
-  --accent: #4f6ef7;
-  --algo:    #4a90e0;
-  --sys:     #7c6fe0;
-  --ai:      #5bbfdf;
-  --dev:     #43c87a;
-  --exp:     #35b5a0;
-  --survey:  #e0a83a;
-  --output:  #d9607a;
-  --course: #4a8fda;
-  --coding: #3db86a;
-  --academic: #d4922a;
-  --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
-}
-
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'PingFang SC','Helvetica Neue','Microsoft YaHei',sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background: #f5f5f2;
+  font-family: -apple-system, 'Inter', 'Segoe UI', sans-serif;
   min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0;
 }
-
-/* ── 顶部 header ── */
-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 40px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+.hero {
+  text-align: center; margin-bottom: 48px;
 }
-.header-left { display:flex; align-items:center; gap:14px; }
-.avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg, #4f6ef7, #a06ef7);
-  display: flex; align-items:center; justify-content:center;
-  font-size: 16px; font-weight: 700; color: #fff;
-  flex-shrink: 0;
+.hero h1 {
+  font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px;
 }
-.header-name { font-size: 17px; font-weight: 600; }
-.header-sub  { font-size: 12px; color: var(--text3); margin-top:1px; }
-.header-right { display:flex; gap:10px; align-items:center; }
-.btn-graph {
-  padding: 8px 16px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
+.hero p {
+  font-size: 14px; color: #888;
+}
+.cards {
+  display: flex; gap: 20px;
+}
+.card {
+  width: 220px;
+  background: #fff;
+  border: 1px solid #e0ddd6;
+  border-radius: 12px;
+  padding: 28px 24px;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: opacity 0.15s;
+  color: inherit;
+  transition: box-shadow .15s, transform .15s;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
 }
-.btn-graph:hover { opacity: 0.88; }
-.last-update { font-size: 12px; color: var(--text3); }
-
-/* ── 主布局 ── */
-main { max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; }
-
-/* ── 总览卡片 ── */
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  margin-bottom: 32px;
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,.1);
+  transform: translateY(-2px);
 }
-.ov-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px 20px 16px;
-  box-shadow: var(--shadow);
-}
-.ov-card .dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  display: inline-block; margin-right: 6px; vertical-align: middle;
-}
-.ov-card .cat-label { font-size: 12px; color: var(--text2); font-weight: 500; }
-.ov-card .count { font-size: 28px; font-weight: 700; margin: 8px 0 4px; }
-.ov-card .count span { font-size: 14px; font-weight: 400; color: var(--text3); }
-.ov-card .mini-bar { background:#f0f1f5; border-radius:4px; height:5px; overflow:hidden; margin-top:8px; }
-.ov-card .mini-bar-fill { height:100%; border-radius:4px; transition: width 0.5s; }
-
-/* 总进度大卡 */
-.total-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px 28px;
-  box-shadow: var(--shadow);
-  margin-bottom: 32px;
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-.total-circle {
-  position: relative;
-  width: 90px; height: 90px;
-  flex-shrink: 0;
-}
-.total-circle svg { width:90px; height:90px; transform: rotate(-90deg); }
-.total-circle .bg-circle { fill:none; stroke:#f0f1f5; stroke-width:8; }
-.total-circle .fg-circle { fill:none; stroke:var(--accent); stroke-width:8; stroke-linecap:round; transition: stroke-dashoffset 0.6s ease; }
-.circle-text {
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  text-align:center; pointer-events:none;
-}
-.circle-pct { font-size:20px; font-weight:700; color:var(--text); line-height:1; }
-.circle-sub { font-size:10px; color:var(--text3); margin-top:2px; }
-.total-info h2 { font-size:20px; font-weight:700; margin-bottom:6px; }
-.total-info p  { font-size:13px; color:var(--text2); line-height:1.7; }
-.total-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
-.tag {
-  font-size:11px; padding:3px 10px; border-radius:12px;
-  background:#f0f1f5; color:var(--text2);
-}
-.tag.tag-learning { background:#fff8e1; color:#c17f00; }
-.tag.tag-mastered { background:#e8f5e9; color:#2e7d32; }
-
-/* ── 分类板块 ── */
-.section { margin-bottom: 28px; }
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.section-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.section-title { font-size:15px; font-weight:600; }
-.section-count { font-size:12px; color:var(--text3); }
-.section-pct   { font-size:12px; font-weight:600; margin-left:auto; }
-
-/* 节点卡片网格 */
-.node-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-}
-.node-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
-  user-select: none;
-  position: relative;
-}
-.node-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.08); transform: translateY(-1px); }
-.node-card.mastered { background:#f0faf2; border-color:#a5d6a7; }
-.node-card.learning { background:#fffde7; border-color:#ffe082; }
-
-.node-card .node-name { font-size:13px; font-weight:500; color:var(--text); margin-bottom:4px; }
-.node-card .node-status {
-  font-size:10px;
-  display:inline-flex; align-items:center; gap:3px;
-  padding:2px 6px; border-radius:8px;
-  background:#f0f1f5; color:var(--text3);
-}
-.node-card.mastered .node-status { background:#e8f5e9; color:#2e7d32; }
-.node-card.learning .node-status { background:#fff8e1; color:#c17f00; }
-.node-card .node-desc {
-  font-size:11px; color:var(--text3); margin-top:6px;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-  overflow:hidden; line-height:1.5;
-}
-
-/* 状态切换下拉 */
-.node-card .status-menu {
-  display: none;
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 4px 0;
-  z-index: 50;
-  min-width: 130px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-}
-.node-card.open .status-menu { display:block; }
-.status-opt {
-  padding: 8px 14px;
-  font-size:12px;
-  cursor:pointer;
-  color:var(--text2);
-  display:flex; align-items:center; gap:7px;
-}
-.status-opt:hover { background:#f5f6fa; }
-.status-opt .s-dot { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
-
-/* 笔记弹窗 */
-.modal-backdrop {
-  display:none;
-  position:fixed; inset:0;
-  background:rgba(0,0,0,0.18);
-  z-index:200;
-  align-items:center; justify-content:center;
-}
-.modal-backdrop.open { display:flex; }
-.modal {
-  background:var(--surface);
-  border-radius:16px;
-  padding:28px 28px 24px;
-  width:460px; max-width:95vw;
-  box-shadow:0 8px 40px rgba(0,0,0,0.12);
-}
-.modal-title { font-size:17px; font-weight:600; margin-bottom:4px; }
-.modal-cat   { font-size:12px; color:var(--text3); margin-bottom:14px; }
-.modal-desc  { font-size:13px; color:var(--text2); line-height:1.7; margin-bottom:16px; background:#f7f8fc; border-radius:8px; padding:12px 14px; }
-.modal label { font-size:12px; color:var(--text3); display:block; margin-bottom:5px; }
-.modal textarea {
-  width:100%; min-height:90px; border:1.5px solid var(--border); border-radius:8px;
-  padding:10px 12px; font-size:13px; font-family:inherit; color:var(--text);
-  resize:vertical; line-height:1.6;
-}
-.modal textarea:focus { outline:none; border-color:var(--accent); }
-.modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
-.btn-close {
-  padding:8px 18px; border-radius:8px; border:1.5px solid var(--border);
-  background:transparent; color:var(--text2); font-size:13px; cursor:pointer;
-}
-.btn-close:hover { background:#f0f1f5; }
-.btn-save {
-  padding:8px 18px; border-radius:8px; border:none;
-  background:var(--accent); color:#fff; font-size:13px; font-weight:500; cursor:pointer;
-}
-.btn-save:hover { opacity:0.88; }
-
-/* 页脚 */
-footer {
-  text-align:center; padding:20px; font-size:12px; color:var(--text3);
-  border-top:1px solid var(--border); background:var(--surface); margin-top:40px;
-}
-
-/* 响应式 */
-@media(max-width:900px) {
-  .overview-grid { grid-template-columns: repeat(4, 1fr); }
-}
-@media(max-width:700px) {
-  .overview-grid { grid-template-columns:1fr 1fr; }
-  header { padding:0 16px; }
-  main   { padding:20px 12px 40px; }
-  .total-card { flex-direction:column; align-items:flex-start; gap:16px; }
+.card-icon { font-size: 36px; }
+.card-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+.card-desc  { font-size: 12px; color: #888; text-align: center; line-height: 1.5; }
+.card-badge {
+  font-size: 10px; font-weight: 700; padding: 3px 10px;
+  border-radius: 10px; letter-spacing: .04em;
 }
 </style>
 </head>
 <body>
-
-<header>
-  <div class="header-left">
-    <div class="avatar">黄</div>
-    <div>
-      <div class="header-name">黄涵钰的知识库</div>
-      <div class="header-sub" id="header-sub">保研备考 · 学习进度追踪</div>
-    </div>
-  </div>
-  <div class="header-right">
-    <span class="last-update" id="last-update"></span>
-    <a href="graph.html" class="btn-graph">🔗 查看知识图谱</a>
-  </div>
-</header>
-
-<main>
-
-  <!-- 总进度卡 -->
-  <div class="total-card">
-    <div class="total-circle">
-      <svg viewBox="0 0 90 90">
-        <circle class="bg-circle" cx="45" cy="45" r="37"/>
-        <circle class="fg-circle" id="circle-fg" cx="45" cy="45" r="37"
-          stroke-dasharray="232.5" stroke-dashoffset="232.5"/>
-      </svg>
-      <div class="circle-text">
-        <div class="circle-pct" id="circle-pct">0%</div>
-        <div class="circle-sub">掌握</div>
-      </div>
-    </div>
-    <div class="total-info">
-      <h2 id="total-headline">加载中…</h2>
-      <p id="total-desc">点击卡片切换学习状态，双击打开笔记。</p>
-      <div class="total-tags" id="total-tags"></div>
-    </div>
-  </div>
-
-  <!-- 7个子分类概览卡 + 3个大类分组标题 -->
-  <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.5px;">📚 专业课基础</div>
-  <div class="overview-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px;">
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--algo)"></span><span class="cat-label">算法与数据结构</span></div>
-      <div class="count" id="ov-algo">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-algo" style="background:var(--algo);width:0%"></div></div>
-    </div>
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--sys)"></span><span class="cat-label">系统与网络</span></div>
-      <div class="count" id="ov-sys">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-sys" style="background:var(--sys);width:0%"></div></div>
-    </div>
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--ai)"></span><span class="cat-label">AI 基础</span></div>
-      <div class="count" id="ov-ai">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-ai" style="background:var(--ai);width:0%"></div></div>
-    </div>
-  </div>
-  <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.5px;">💻 编程与实验</div>
-  <div class="overview-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:10px;">
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--dev)"></span><span class="cat-label">开发工具链</span></div>
-      <div class="count" id="ov-dev">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-dev" style="background:var(--dev);width:0%"></div></div>
-    </div>
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--exp)"></span><span class="cat-label">实验工程</span></div>
-      <div class="count" id="ov-exp">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-exp" style="background:var(--exp);width:0%"></div></div>
-    </div>
-  </div>
-  <div style="margin-bottom:8px;font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.5px;">🎓 学术素养</div>
-  <div class="overview-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:32px;">
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--survey)"></span><span class="cat-label">文献与调研</span></div>
-      <div class="count" id="ov-survey">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-survey" style="background:var(--survey);width:0%"></div></div>
-    </div>
-    <div class="ov-card">
-      <div><span class="dot" style="background:var(--output)"></span><span class="cat-label">输出与表达</span></div>
-      <div class="count" id="ov-output">0 <span>/ 0</span></div>
-      <div class="mini-bar"><div class="mini-bar-fill" id="mb-output" style="background:var(--output);width:0%"></div></div>
-    </div>
-  </div>
-
-  <!-- 各分类节点列表 -->
-  <div id="sections"></div>
-
-</main>
-
-<footer>黄涵钰的知识库 · 数据保存在本地浏览器</footer>
-
-<!-- 笔记弹窗 -->
-<div class="modal-backdrop" id="modal-backdrop">
-  <div class="modal">
-    <div class="modal-title" id="modal-title">—</div>
-    <div class="modal-cat"  id="modal-cat">—</div>
-    <div class="modal-desc" id="modal-desc"></div>
-    <label>我的笔记</label>
-    <textarea id="modal-note" placeholder="记录你的理解、疑问、复习要点…"></textarea>
-    <div class="modal-footer">
-      <button class="btn-close" id="modal-close">关闭</button>
-      <button class="btn-save"  id="modal-save">保存笔记</button>
-    </div>
-  </div>
+<div class="hero">
+  <h1>📚 基础课学习系统</h1>
+  <p>知识图谱 · 学习笔记 · 考试测验 · 进度追踪</p>
 </div>
-
-<script>
-// ── 与 graph.html 共享同一份数据 ──
-const NODES = [
-  // ━━ 算法与数据结构 (algo) ━━
-  { id:"ds",        label:"数据结构",       cat:"algo",   desc:"数组、链表、栈/队列、树、图、堆、哈希表。掌握每种结构的适用场景和增删查的时间复杂度，是刷题和面试的基础。" },
-  { id:"sort",      label:"排序算法",       cat:"algo",   desc:"快排O(nlogn)平均/O(n²)最坏；归并O(nlogn)稳定；堆排O(nlogn)原地不稳定；计数/基数O(n+k)非比较。手写快排是高频考点。" },
-  { id:"tree",      label:"二叉树",         cat:"algo",   desc:"前/中/后序遍历（递归+迭代模板）、层序BFS、BST（查找/插入/删除）、AVL/红黑树平衡条件。DFS递归框架要烂熟于心。" },
-  { id:"graph_ds",  label:"图算法",         cat:"algo",   desc:"BFS/DFS遍历、Dijkstra最短路（堆优化O((V+E)logV)）、Floyd全源O(V³)、Kruskal/Prim最小生成树、拓扑排序、并查集。" },
-  { id:"dp",        label:"动态规划",       cat:"algo",   desc:"状态定义→转移方程→初始化→遍历顺序。经典：背包、LCS、LIS、编辑距离。优化：滚动数组、单调队列。" },
-  { id:"complexity",label:"复杂度分析",     cat:"algo",   desc:"时间/空间大O记号，摊还分析，Master定理（分治递归分析）。能快速判断算法效率是写好代码的基本功。" },
-  { id:"hash",      label:"哈希表",         cat:"algo",   desc:"哈希函数设计、冲突解决（链地址/开放寻址）、装载因子、再哈希。Python dict / C++ unordered_map底层原理。" },
-  // ━━ 系统与网络 (sys) ━━
-  { id:"os",        label:"操作系统",       cat:"sys",    desc:"进程/线程管理、调度算法、内存管理（虚拟内存/分页/TLB）、文件系统、I/O模型、死锁（4条件+银行家算法）。" },
-  { id:"process",   label:"进程与线程",     cat:"sys",    desc:"进程=资源分配单位，线程=CPU调度单位。PCB结构、五状态转换、进程通信（管道/信号量/共享内存/消息队列）。" },
-  { id:"schedule",  label:"调度算法",       cat:"sys",    desc:"FCFS/SJF/RR时间片轮转/优先级/多级反馈队列。评价指标：CPU利用率、吞吐量、周转时间、等待时间、响应时间。" },
-  { id:"memory",    label:"内存管理",       cat:"sys",    desc:"虚拟地址空间、分页（页表/多级页表）、TLB、缺页中断、页面置换（FIFO/LRU/Clock）、内存碎片（内/外碎片）。" },
-  { id:"network",   label:"计算机网络",     cat:"sys",    desc:"OSI七层/TCP-IP四层模型，各层协议职责，子网划分/CIDR，路由协议（RIP/OSPF/BGP），HTTP/HTTPS/DNS/ARP/ICMP。" },
-  { id:"tcpip",     label:"TCP/IP",         cat:"sys",    desc:"三次握手（SYN→SYN-ACK→ACK）、四次挥手、TIME_WAIT=2MSL原因、拥塞控制（慢启动/拥塞避免/快重传/快恢复）、滑动窗口。" },
-  { id:"http",      label:"HTTP/HTTPS",     cat:"sys",    desc:"HTTP无状态、请求方法、常用状态码、Cookie/Session、HTTP2多路复用。HTTPS=TLS+HTTP，握手流程，证书链验证。" },
-  { id:"ca",        label:"计算机组成",     cat:"sys",    desc:"指令集体系结构（CISC/RISC）、CPU组成（ALU/寄存器/控制器）、总线、Cache层次结构（L1/L2/L3）、I/O接口与DMA。" },
-  { id:"cache",     label:"Cache原理",      cat:"sys",    desc:"时间/空间局部性原理、Cache映射（直接/全相联/组相联）、替换策略（LRU/随机）、写策略（写直达/写回/写分配）。" },
-  { id:"pipeline",  label:"流水线",         cat:"sys",    desc:"5级流水线（IF/ID/EX/MEM/WB）、吞吐率与加速比、流水线冒险（结构/数据/控制）、数据前递、分支预测。" },
-  // ━━ AI 基础 (ai) ━━
-  { id:"ml_basic",  label:"机器学习",       cat:"ai",     desc:"监督/无监督/强化学习范式，损失函数，梯度下降（SGD/Momentum/Adam），正则化（L1/L2/Dropout），偏差-方差分解，交叉验证。" },
-  { id:"dl_basic",  label:"深度学习",       cat:"ai",     desc:"BP反向传播（链式法则），激活函数（ReLU/GELU/Sigmoid），BatchNorm/LayerNorm，优化器（Adam/AdamW），学习率调度。" },
-  { id:"conv",      label:"CNN",            cat:"ai",     desc:"卷积核/步长/填充/输出尺寸计算，感受野，池化层，经典架构：LeNet→AlexNet→VGG→ResNet（残差连接）→EfficientNet。" },
-  { id:"rnn",       label:"RNN/LSTM",       cat:"ai",     desc:"RNN梯度消失问题，LSTM三门控（遗忘/输入/输出）+cell state，GRU简化。序列建模：NLP、时序预测。" },
-  { id:"transformer",label:"Transformer",   cat:"ai",     desc:"Scaled Dot-Product Attention，Multi-Head Attention，位置编码，Pre-LN vs Post-LN，FFN，Encoder-Decoder架构。" },
-  { id:"attention", label:"注意力机制",     cat:"ai",     desc:"Q/K/V矩阵，Self-Attention O(n²d)复杂度，Cross-Attention（Decoder中），Flash Attention等高效变种。" },
-  { id:"pretrain",  label:"预训练与微调",   cat:"ai",     desc:"BERT（MLM+NSP预训练）、GPT（自回归）、预训练→微调范式、LoRA/Adapter等参数高效微调（PEFT）方法、提示工程。" },
-  { id:"eval",      label:"评估指标",       cat:"ai",     desc:"分类：Acc/Precision/Recall/F1/AUC-ROC。检测：mAP/IoU。生成：BLEU/ROUGE/Perplexity。统计检验：配对t检验/置信区间。" },
-  // ━━ 开发工具链 (dev) ━━
-  { id:"python",    label:"Python",         cat:"dev",    desc:"列推导式、生成器、装饰器、上下文管理器、类型注解、async/await。科研常用：NumPy向量化、Pandas数据处理、Matplotlib可视化。" },
-  { id:"pytorch",   label:"PyTorch",        cat:"dev",    desc:"Tensor/autograd、nn.Module、DataLoader、自定义Loss/Optimizer。分布式训练（DDP）、混合精度（AMP）、模型序列化与加载。" },
-  { id:"git",       label:"Git",            cat:"dev",    desc:"commit/branch/merge/rebase，GitHub协作（fork→PR→code review），实验代码分支隔离，.gitignore排除大文件，Tag版本标记。" },
-  { id:"linux",     label:"Linux",          cat:"dev",    desc:"常用命令（ls/grep/find/ps/kill/chmod），Shell脚本，管道与重定向，进程管理，环境变量，cron定时，系统监控（htop/iostat）。" },
-  { id:"vscode",    label:"IDE与调试",      cat:"dev",    desc:"VSCode断点调试/pdb，远程SSH开发，Python/Jupyter扩展，代码格式化（black/flake8），快捷键与效率技巧。" },
-  // ━━ 实验工程 (exp) ━━
-  { id:"server",    label:"服务器",         cat:"exp",    desc:"GPU资源管理（nvidia-smi/watch），conda虚拟环境，SLURM调度（sbatch/squeue/scancel），tmux会话保持，scp/rsync传文件。" },
-  { id:"env",       label:"环境管理",       cat:"exp",    desc:"conda/pip/poetry依赖管理，requirements.txt和environment.yml，CUDA版本与PyTorch对应关系，Docker容器化实验复现。" },
-  { id:"exp_mgmt",  label:"实验管理",       cat:"exp",    desc:"wandb/TensorBoard记录loss/metric曲线，YAML配置文件管理超参，每次实验独立目录保存checkpoint和log，Hydra配置框架。" },
-  { id:"debug",     label:"调试技巧",       cat:"exp",    desc:"assert检查shape/dtype，打印中间梯度，梯度不更新排查（loss.item()/zero_grad遗漏），NaN/Inf追踪，数值稳定性技巧。" },
-  { id:"repro",     label:"可复现性",       cat:"exp",    desc:"固定随机种子（torch/numpy/random），记录硬件与软件版本，代码+数据+config一同存档，Dockerfile保证跨机器一致性。" },
-  { id:"data_proc", label:"数据处理",       cat:"exp",    desc:"数据清洗与预处理，DataLoader自定义collate_fn，数据增强策略，不平衡数据采样（over/under sampling）。" },
-  // ━━ 文献与调研 (survey) ━━
-  { id:"paper_search", label:"论文检索",    cat:"survey", desc:"Google Scholar/arXiv/Semantic Scholar，关键词组合策略，引用追踪（引用了谁/被谁引）。订阅顶会alert（CVPR/NeurIPS/ACL/ICLR）。" },
-  { id:"paper_read",   label:"论文精读",    cat:"survey", desc:"三遍读法：①快扫（摘要/图表/结论判断值不值）→②通读（理解方法和实验）→③精读（推导细节/复现关键实验）。重点看ablation study。" },
-  { id:"field_survey", label:"领域调研",    cat:"survey", desc:"梳理方向发展脉络：经典baseline→近3年SOTA→当前open problem。用Papers with Code追踪benchmark，画技术演进时间线。" },
-  { id:"ref_mgmt",     label:"文献管理",    cat:"survey", desc:"Zotero分类标签+注释，导出bibtex，阅读时记录：核心贡献/创新点/局限性/可借鉴方法。Connected Papers图谱关联分析。" },
-  { id:"idea",         label:"想Idea",      cat:"survey", desc:"从gap出发：现有方法哪里做不好？什么假设能解决？类比其他领域方法迁移。好idea要有strong motivation：为什么这样设计比baseline好？" },
-  // ━━ 输出与表达 (output) ━━
-  { id:"latex",       label:"LaTeX",        cat:"output", desc:"equation/figure/table/algorithm环境，biblatex/natbib参考文献，Overleaf在线协作，图表用矢量格式（.pdf/.eps）。" },
-  { id:"paper_write", label:"论文写作",     cat:"output", desc:"结构：Abstract→Intro→Related Work→Method→Experiments→Conclusion。写作顺序：先Method+Experiments，后Intro+Abstract，每句话有且只有一个作用。" },
-  { id:"rebuttal",    label:"Rebuttal",     cat:"output", desc:"审稿意见逐条回应，态度诚恳专业。对合理质疑：承认局限并补充实验；对误解：礼貌澄清+指向文中对应位置。" },
-  { id:"slides",      label:"学术报告",     cat:"output", desc:"一页一核心点，图示优于文字，动画克制。讲paper结构：背景→问题→方法→结果→局限性。组会汇报时间控制，预留Q&A。" },
-  { id:"poster",      label:"学术海报",     cat:"output", desc:"竖版/横版A0，3分钟电梯演讲配合。模块：贡献摘要/方法图/核心实验结果。视觉层次清晰，远处可读主标题，近处可读细节。" },
-  { id:"writing_en",  label:"英文写作",     cat:"output", desc:"学术英语规范：避免口语化，时态一致（过去式描述实验/现在式描述结论），精确用词，Grammarly辅助校对。" },
-];
-
-const CAT_META = {
-  algo:   { label:'算法与数据结构', color:'var(--algo)',    ov:'ov-algo',    mb:'mb-algo'   },
-  sys:    { label:'系统与网络',     color:'var(--sys)',     ov:'ov-sys',     mb:'mb-sys'    },
-  ai:     { label:'AI基础',         color:'var(--ai)',      ov:'ov-ai',      mb:'mb-ai'     },
-  dev:    { label:'开发工具链',     color:'var(--dev)',     ov:'ov-dev',     mb:'mb-dev'    },
-  exp:    { label:'实验工程',       color:'var(--exp)',     ov:'ov-exp',     mb:'mb-exp'    },
-  survey: { label:'文献与调研',     color:'var(--survey)',  ov:'ov-survey',  mb:'mb-survey' },
-  output: { label:'输出与表达',     color:'var(--output)',  ov:'ov-output',  mb:'mb-output' },
-};
-const CAT_ORDER = ['algo','sys','ai','dev','exp','survey','output'];
-const STATUS_LABELS = { todo:'未学', learning:'学习中', mastered:'已掌握' };
-
-// ── 状态 & 笔记 ──
-const SK = 'baoyuan_status', NK = 'baoyuan_notes';
-let statusMap = (() => { try { return JSON.parse(localStorage.getItem(SK))||{}; } catch{ return {}; }})();
-let notesMap  = (() => { try { return JSON.parse(localStorage.getItem(NK))||{}; } catch{ return {}; }})();
-const getS = id => statusMap[id]||'todo';
-const setS = (id,s) => { statusMap[id]=s; localStorage.setItem(SK,JSON.stringify(statusMap)); };
-const getN = id => notesMap[id]||'';
-const setN = (id,n) => { notesMap[id]=n; localStorage.setItem(NK,JSON.stringify(notesMap)); };
-
-// ── 渲染 ──
-function render() {
-  renderOverview();
-  renderSections();
-  renderTotal();
-}
-
-function renderTotal() {
-  const total = NODES.length;
-  const mastered = NODES.filter(n => getS(n.id)==='mastered').length;
-  const learning = NODES.filter(n => getS(n.id)==='learning').length;
-  const pct = Math.round(mastered/total*100);
-
-  document.getElementById('circle-pct').textContent = pct+'%';
-  const r = 37, circ = 2*Math.PI*r;
-  document.getElementById('circle-fg').style.strokeDashoffset = circ - circ*pct/100;
-
-  document.getElementById('total-headline').textContent = `已掌握 ${mastered} 个 · 学习中 ${learning} 个 · 共 ${total} 个知识点`;
-
-  const tags = document.getElementById('total-tags');
-  tags.innerHTML = '';
-  if (mastered>0) tags.innerHTML += `<span class="tag tag-mastered">✓ 已掌握 ${mastered}</span>`;
-  if (learning>0) tags.innerHTML += `<span class="tag tag-learning">⟳ 学习中 ${learning}</span>`;
-  tags.innerHTML += `<span class="tag">共 ${total} 个节点</span>`;
-
-  // header sub
-  document.getElementById('header-sub').textContent = `研究生必备素质 · 总体完成 ${pct}%`;
-
-  // last update
-  document.getElementById('last-update').textContent = `更新于 ${new Date().toLocaleDateString('zh-CN')}`;
-}
-
-function renderOverview() {
-  CAT_ORDER.forEach(cat => {
-    const group = NODES.filter(n => n.cat===cat);
-    const m = group.filter(n => getS(n.id)==='mastered').length;
-    const pct = group.length ? Math.round(m/group.length*100) : 0;
-    document.getElementById(CAT_META[cat].ov).innerHTML = `${m} <span>/ ${group.length}</span>`;
-    document.getElementById(CAT_META[cat].mb).style.width = pct+'%';
-  });
-}
-
-function renderSections() {
-  const container = document.getElementById('sections');
-  container.innerHTML = '';
-  CAT_ORDER.forEach(cat => {
-    const meta = CAT_META[cat];
-    const group = NODES.filter(n => n.cat===cat);
-    const m = group.filter(n => getS(n.id)==='mastered').length;
-    const pct = group.length ? Math.round(m/group.length*100) : 0;
-
-    const sec = document.createElement('div');
-    sec.className = 'section';
-    sec.innerHTML = `
-      <div class="section-header">
-        <div class="section-dot" style="background:${meta.color}"></div>
-        <div class="section-title">${meta.label}</div>
-        <div class="section-count">${group.length} 个知识点</div>
-        <div class="section-pct" style="color:${meta.color}">${pct}%</div>
-      </div>
-      <div class="node-grid" id="grid-${cat}"></div>
-    `;
-    container.appendChild(sec);
-
-    const grid = sec.querySelector(`#grid-${cat}`);
-    group.forEach(node => {
-      const s = getS(node.id);
-      const card = document.createElement('div');
-      card.className = `node-card ${s}`;
-      card.dataset.id = node.id;
-      card.innerHTML = `
-        <div class="node-name">${node.label}</div>
-        <span class="node-status">
-          ${s==='mastered'?'✓ ':s==='learning'?'⟳ ':''}${STATUS_LABELS[s]}
-        </span>
-        <div class="node-desc">${node.desc}</div>
-        <div class="status-menu">
-          <div class="status-opt" data-s="todo"><span class="s-dot" style="background:#c0c0c0;border:1px solid #aaa"></span>未学</div>
-          <div class="status-opt" data-s="learning"><span class="s-dot" style="background:#ffd740"></span>学习中</div>
-          <div class="status-opt" data-s="mastered"><span class="s-dot" style="background:#4caf50"></span>已掌握</div>
-        </div>
-      `;
-
-      // 单击：切换状态菜单
-      card.addEventListener('click', e => {
-        e.stopPropagation();
-        const wasOpen = card.classList.contains('open');
-        document.querySelectorAll('.node-card.open').forEach(c => c.classList.remove('open'));
-        if (!wasOpen) card.classList.add('open');
-      });
-
-      // 双击：打开笔记
-      card.addEventListener('dblclick', e => {
-        e.stopPropagation();
-        card.classList.remove('open');
-        openModal(node.id);
-      });
-
-      // 状态选项点击
-      card.querySelectorAll('.status-opt').forEach(opt => {
-        opt.addEventListener('click', e => {
-          e.stopPropagation();
-          setS(node.id, opt.dataset.s);
-          card.classList.remove('open');
-          render();
-        });
-      });
-
-      grid.appendChild(card);
-    });
-  });
-}
-
-// 关闭所有菜单
-document.addEventListener('click', () => {
-  document.querySelectorAll('.node-card.open').forEach(c => c.classList.remove('open'));
-});
-
-// ── 笔记弹窗 ──
-let modalId = null;
-function openModal(id) {
-  const node = NODES.find(n => n.id===id);
-  if (!node) return;
-  modalId = id;
-  document.getElementById('modal-title').textContent = node.label;
-  document.getElementById('modal-cat').textContent = CAT_META[node.cat].label;
-  document.getElementById('modal-desc').textContent = node.desc;
-  document.getElementById('modal-note').value = getN(id);
-  document.getElementById('modal-backdrop').classList.add('open');
-  setTimeout(()=>document.getElementById('modal-note').focus(), 100);
-}
-document.getElementById('modal-close').addEventListener('click', () => {
-  document.getElementById('modal-backdrop').classList.remove('open');
-});
-document.getElementById('modal-save').addEventListener('click', () => {
-  if (!modalId) return;
-  setN(modalId, document.getElementById('modal-note').value);
-  document.getElementById('modal-backdrop').classList.remove('open');
-});
-document.getElementById('modal-backdrop').addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-backdrop')) {
-    document.getElementById('modal-backdrop').classList.remove('open');
-  }
-});
-
-// ── 初始化 ──
-render();
-</script>
+<div class="cards">
+  <a class="card" href="graph.html">
+    <div class="card-icon">🕸️</div>
+    <div class="card-title">知识图谱</div>
+    <div class="card-desc">浏览四门课程的知识结构，记录笔记，参加测验</div>
+    <span class="card-badge" style="background:#e8f3fd;color:#0a6ed1">Graph + Quiz</span>
+  </a>
+  <a class="card" href="dashboard.html">
+    <div class="card-icon">📊</div>
+    <div class="card-title">学习 Dashboard</div>
+    <div class="card-desc">查看每门课的学习进度、考试历史与平均分</div>
+    <span class="card-badge" style="background:#e8f5e9;color:#2e7d32">Progress</span>
+  </a>
+</div>
 </body>
 </html>
