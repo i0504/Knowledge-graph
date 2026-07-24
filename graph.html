@@ -1,819 +1,697 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>知识图谱 — 黄涵钰</title>
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<title>知识图谱</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'PingFang SC','Microsoft YaHei',sans-serif; background:#ffffff; color:#1a1d2e; overflow:hidden; height:100vh; display:flex; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f5f5f2; color: #1a1a1a; font-family: -apple-system,'Inter','Segoe UI',sans-serif; overflow: hidden; }
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 48px;
+  background: rgba(250,250,247,.95); border-bottom: 1px solid #e0ddd6;
+  display: flex; align-items: center; gap: 6px; padding: 0 16px;
+  backdrop-filter: blur(8px); z-index: 30;
+}
+#topbar-title { font-size: 13px; font-weight: 600; color: #3d3d3a; margin-right: 8px; white-space: nowrap; }
+.filter-btn {
+  padding: 4px 12px; border: 1px solid transparent; border-radius: 20px;
+  cursor: pointer; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  transition: all .15s; color: #555; background: transparent;
+}
+.filter-btn:hover { background: #eeecea; border-color: #ccc; }
+.filter-btn.active { border-color: transparent !important; color: #fff !important; }
+.divider { width: 1px; height: 20px; background: #e0ddd6; margin: 0 4px; flex-shrink: 0; }
+#search-wrap { margin-left: auto; position: relative; display: flex; align-items: center; }
+#search-wrap svg { position: absolute; left: 9px; pointer-events: none; width: 13px; height: 13px; color: #999; }
+#search-box {
+  padding: 5px 10px 5px 30px; border: 1px solid #ddd; border-radius: 20px;
+  background: #fff; color: #222; font-size: 12px; width: 180px; outline: none;
+}
+#search-box:focus { border-color: #7c5cbf; }
+#home-btn {
+  padding: 4px 12px; border: 1px solid #ddd; border-radius: 20px;
+  cursor: pointer; font-size: 11px; color: #555; background: transparent;
+  text-decoration: none; display: flex; align-items: center; gap: 4px;
+}
+#home-btn:hover { background: #eeecea; }
+svg#graph { position: fixed; top: 48px; left: 0; width: 100vw; height: calc(100vh - 48px); }
+.node circle { cursor: pointer; }
+.node text { font-size: 10px; fill: #777; pointer-events: none; text-anchor: middle; }
+.link { stroke: #d4d0c8; stroke-opacity: .8; }
+.node.dimmed circle { opacity: .18; }
+.node.dimmed text { opacity: .1; }
+.link.dimmed { stroke-opacity: .06; }
+.node.selected circle { stroke-width: 2.5px !important; filter: drop-shadow(0 0 6px rgba(0,0,0,.2)); }
+.node.selected text { fill: #1a1a1a !important; font-weight: 600; }
+.link.active { stroke-opacity: 1 !important; stroke-width: 2px !important; }
+.node.has-note circle { stroke: #f59e0b !important; stroke-width: 2px !important; }
 
-/* ── 图谱区 ── */
-#graph-area { flex:1; position:relative; }
-svg { width:100%; height:100%; }
+/* Detail Panel */
+#detail {
+  position: fixed; right: 0; top: 48px; width: 360px; height: calc(100vh - 48px);
+  background: #fafaf7; border-left: 1px solid #e0ddd6;
+  display: none; flex-direction: column; overflow: hidden;
+  box-shadow: -4px 0 20px rgba(0,0,0,.06); z-index: 20;
+}
+#detail-header { padding: 16px 18px 12px; border-bottom: 1px solid #e8e5de; flex-shrink: 0; }
+#detail-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+#d-title { font-size: 14px; font-weight: 700; color: #1a1a1a; flex: 1; margin-right: 8px; line-height: 1.3; }
+#close-btn { cursor: pointer; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: #999; font-size: 14px; }
+#close-btn:hover { background: #eeecea; color: #333; }
+.type-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+#detail-tabs { display: flex; border-bottom: 1px solid #e8e5de; flex-shrink: 0; }
+.tab-btn {
+  flex: 1; padding: 10px; font-size: 12px; font-weight: 600; color: #888;
+  border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color .15s;
+}
+.tab-btn.active { color: #7c5cbf; border-bottom-color: #7c5cbf; }
+#detail-body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+#detail-body::-webkit-scrollbar { width: 4px; }
+#detail-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: #b0aaa0; margin: 14px 0 8px; display: flex; align-items: center; gap: 6px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: #e8e5de; }
+#d-desc { font-size: 12.5px; color: #555; line-height: 1.65; padding: 10px 12px; background: #f0ede6; border-radius: 6px; border-left: 3px solid #ccc; }
+.conn-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; margin: 2px 0; transition: background .1s; }
+.conn-item:hover { background: #f0ede6; }
+.conn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.conn-name { font-size: 12px; color: #333; flex: 1; }
+.conn-type { font-size: 10px; color: #b0aaa0; }
 
-/* 边 */
-.link { stroke:#d0d4e0; stroke-opacity:0.7; stroke-width:1.2; }
-.link.strong  { stroke-width:2; stroke-opacity:0.85; }
-.link.highlighted { stroke:#4a6ef7; stroke-opacity:1; stroke-width:2.5; }
+/* Note tab */
+#note-area {
+  width: 100%; min-height: 160px; padding: 10px 12px;
+  border: 1px solid #ddd; border-radius: 6px; font-size: 12.5px;
+  font-family: inherit; line-height: 1.6; resize: vertical; outline: none;
+  background: #fff; color: #1a1a1a;
+}
+#note-area:focus { border-color: #7c5cbf; }
+#note-save {
+  margin-top: 8px; padding: 6px 18px; background: #7c5cbf; color: #fff;
+  border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600;
+}
+#note-save:hover { background: #6a4aaa; }
+#note-saved { font-size: 11px; color: #4caf50; margin-left: 8px; opacity: 0; transition: opacity .3s; }
 
-/* 节点圆 */
-.node circle {
-  stroke:#ffffff; stroke-width:2;
-  cursor:pointer; transition: r 0.15s, filter 0.15s;
-  filter: brightness(0.9) saturate(0.8);
+/* Quiz tab */
+#quiz-start-btn {
+  width: 100%; padding: 10px; background: #0a6ed1; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+  margin-top: 8px;
 }
-.node circle.mastered { filter: brightness(1.15) saturate(1.2) drop-shadow(0 0 7px currentColor); }
-.node circle.learning { filter: brightness(0.88) saturate(1); }
-.node circle.dimmed   { filter: brightness(0.2) saturate(0.2); opacity:0.4; }
-.node text {
-  font-size:10.5px; fill:#444; pointer-events:none;
-  text-anchor:middle; dominant-baseline:central; user-select:none;
+#quiz-start-btn:hover { background: #0856a8; }
+.quiz-history-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 10px; border-radius: 6px; background: #f0ede6; margin: 4px 0;
+  font-size: 12px;
 }
-.node.anchor text { font-size:11.5px; fill:#1a1d2e; font-weight:600; }
-.node.selected circle { stroke:#4a6ef7; stroke-width:2.5; }
-.node.learning circle { stroke:#ffe066; stroke-width:2; }
+.quiz-score { font-weight: 700; }
+.quiz-score.good { color: #2e7d32; }
+.quiz-score.ok   { color: #f59e0b; }
+.quiz-score.bad  { color: #c62828; }
 
-/* ── 7 子分类颜色 ──
-   course系: algo=#4a90e0蓝, sys=#7c6fe0紫, ai=#5bbfdf青蓝
-   coding系: dev=#43c87a绿, exp=#35b5a0青
-   academic系: survey=#e0a83a橙, output=#e06060红粉
-*/
-.cat-algo     circle { fill:#4a90e0; }
-.cat-sys      circle { fill:#7c6fe0; }
-.cat-ai       circle { fill:#5bbfdf; }
-.cat-dev      circle { fill:#43c87a; }
-.cat-exp      circle { fill:#35b5a0; }
-.cat-survey   circle { fill:#e0a83a; }
-.cat-output   circle { fill:#d9607a; }
+/* Quiz Modal */
+#quiz-modal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 200; align-items: center; justify-content: center;
+}
+#quiz-modal.open { display: flex; }
+#quiz-box {
+  background: #fff; border-radius: 12px; width: min(520px, 94vw);
+  max-height: 88vh; overflow-y: auto; padding: 28px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.22);
+}
+#quiz-box h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+#quiz-box .quiz-meta { font-size: 11px; color: #888; margin-bottom: 20px; }
+.q-block { margin-bottom: 22px; }
+.q-text { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 10px; line-height: 1.5; }
+.q-options { display: flex; flex-direction: column; gap: 7px; }
+.q-opt {
+  padding: 9px 14px; border: 1.5px solid #e0ddd6; border-radius: 8px;
+  cursor: pointer; font-size: 12.5px; color: #333; transition: all .12s;
+}
+.q-opt:hover { border-color: #7c5cbf; background: rgba(124,92,191,.06); }
+.q-opt.selected { border-color: #7c5cbf; background: rgba(124,92,191,.1); color: #1a1a1a; }
+.q-opt.correct  { border-color: #4caf50 !important; background: #e8f5e9 !important; color: #1a1a1a; }
+.q-opt.wrong    { border-color: #e53935 !important; background: #ffebee !important; color: #1a1a1a; }
+.q-explain { font-size: 11.5px; color: #555; margin-top: 8px; padding: 8px 10px; background: #f5f5f0; border-radius: 6px; line-height: 1.5; }
+#quiz-footer { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
+#quiz-submit {
+  padding: 9px 24px; background: #0a6ed1; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+#quiz-submit:hover { background: #0856a8; }
+#quiz-submit:disabled { background: #ccc; cursor: default; }
+#quiz-close-btn {
+  padding: 9px 18px; background: transparent; color: #888;
+  border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 13px;
+}
+#quiz-result { font-size: 13px; font-weight: 700; color: #1a1a1a; }
 
-/* mastered 亮色 */
-.cat-algo.mastered    circle { fill:#6aaaf5; }
-.cat-sys.mastered     circle { fill:#a090f8; }
-.cat-ai.mastered      circle { fill:#7ad8f0; }
-.cat-dev.mastered     circle { fill:#65df96; }
-.cat-exp.mastered     circle { fill:#55d0bc; }
-.cat-survey.mastered  circle { fill:#f5c05a; }
-.cat-output.mastered  circle { fill:#f07898; }
-
-/* ── 右侧详情面板 ── */
-#detail-panel {
-  width:290px; height:100vh; background:#f8f9fc; border-left:1px solid #e8eaf0;
-  display:flex; flex-direction:column; overflow:hidden;
-  transition: transform 0.25s;
-}
-#detail-panel.hidden { transform: translateX(290px); position:absolute; right:0; }
-#detail-header {
-  padding:16px 14px 10px; border-bottom:1px solid #e8eaf0;
-}
-#detail-title { font-size:16px; font-weight:700; line-height:1.4; margin-bottom:5px; }
-#detail-cat-badge {
-  display:inline-block; font-size:10px; padding:2px 9px; border-radius:10px;
-  background:#eef0f6; color:#6677aa; letter-spacing:0.5px;
-}
-#detail-body { flex:1; overflow-y:auto; padding:12px 14px; }
-#detail-desc { font-size:12.5px; color:#666; line-height:1.75; margin-bottom:14px; }
-#detail-links h4 { font-size:10px; color:#999; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:7px; }
-#detail-links-list { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:16px; }
-.link-chip {
-  font-size:11px; padding:3px 10px; border-radius:11px;
-  background:#eef0f6; border:1px solid #dde0ea; color:#4466aa; cursor:pointer;
-  transition: all 0.15s;
-}
-.link-chip:hover { background:#e0e5f5; color:#2244aa; border-color:#9aacdd; }
-#detail-note-label { font-size:10px; color:#999; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; }
-#detail-note {
-  width:100%; min-height:90px; background:#ffffff; border:1px solid #dde0ea;
-  border-radius:6px; color:#333; font-size:12.5px; padding:8px 10px;
-  resize:vertical; font-family:inherit; line-height:1.65;
-}
-#detail-note:focus { outline:none; border-color:#4a6ef7; }
-#detail-footer { padding:10px 14px; border-top:1px solid #e8eaf0; }
-.status-btns { display:flex; gap:5px; }
-.status-btn {
-  flex:1; padding:7px 0; border-radius:6px; font-size:11.5px; font-weight:500;
-  border:1px solid #dde0ea; background:#f4f5f9; color:#888; cursor:pointer;
-  transition: all 0.15s;
-}
-.status-btn:hover { border-color:#9aacdd; color:#446; }
-.status-btn.active.s-todo     { color:#888; background:#f0f1f5; }
-.status-btn.active.s-learning { color:#b07700; background:#fffbe6; border-color:#ffe066; }
-.status-btn.active.s-mastered { color:#2a8a4a; background:#edfaf2; border-color:#43c87a; }
-
-/* ── 右上角看板 ── */
-#dashboard {
-  position:absolute; top:14px; right:305px; width:228px;
-  background:rgba(255,255,255,0.92); backdrop-filter:blur(8px);
-  border:1px solid #e8eaf0; border-radius:10px;
-  padding:13px; z-index:10;
-  transition: right 0.25s;
-}
-#dashboard.panel-hidden { right:14px; }
-#dash-title { font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:9px; }
-#dash-total-label { font-size:12.5px; color:#444; margin-bottom:5px; }
-.progress-bar-wrap { background:#e8eaf0; border-radius:4px; height:5px; margin-bottom:11px; overflow:hidden; }
-.progress-bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#43c87a,#5bbfdf); transition: width 0.4s; }
-.cat-group-label { font-size:9.5px; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin:8px 0 4px; padding-top:6px; border-top:1px solid #e8eaf0; }
-.cat-progress { margin-bottom:6px; }
-.cat-progress-label { font-size:10.5px; color:#666; margin-bottom:2px; display:flex; justify-content:space-between; }
-.cat-progress-label span { color:#aaa; }
-.cat-bar-wrap { background:#e8eaf0; border-radius:3px; height:3px; overflow:hidden; }
-.cat-bar-fill { height:100%; border-radius:3px; transition: width 0.4s; }
-.cat-bar-algo    { background:#4a90e0; }
-.cat-bar-sys     { background:#7c6fe0; }
-.cat-bar-ai      { background:#5bbfdf; }
-.cat-bar-dev     { background:#43c87a; }
-.cat-bar-exp     { background:#35b5a0; }
-.cat-bar-survey  { background:#e0a83a; }
-.cat-bar-output  { background:#d9607a; }
-#btn-screenshot {
-  width:100%; margin-top:9px; padding:6px 0; border-radius:6px;
-  background:#f4f5f9; border:1px solid #dde0ea; color:#7788aa;
-  font-size:11px; cursor:pointer; transition: all 0.15s;
-}
-#btn-screenshot:hover { background:#e8eaf6; color:#4466aa; border-color:#9aacdd; }
-
-/* ── 左上角标题 ── */
-#header { position:absolute; top:14px; left:14px; z-index:10; }
-#header h1 { font-size:17px; font-weight:700; color:#1a1d2e; letter-spacing:0.5px; }
-#header p  { font-size:10.5px; color:#aaa; margin-top:3px; }
-
-/* ── 图例 ── */
+/* Legend */
 #legend {
-  position:absolute; bottom:14px; left:14px; z-index:10;
-  display:flex; align-items:center; gap:14px;
+  position: fixed; bottom: 16px; left: 16px; z-index: 20;
+  background: rgba(250,250,247,.92); border: 1px solid #e0ddd6; border-radius: 8px;
+  padding: 10px 14px; font-size: 11px; line-height: 2;
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
 }
-.legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:#666; }
-.legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-
-/* ── 搜索框 ── */
-#search-wrap { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:10; }
-#search {
-  background:rgba(255,255,255,0.92); backdrop-filter:blur(8px);
-  border:1px solid #dde0ea; border-radius:18px;
-  color:#333; font-size:12px; padding:6px 15px; width:190px;
-  outline:none; transition: border-color 0.15s, width 0.2s;
-}
-#search:focus { border-color:#4a6ef7; width:250px; }
-#search::placeholder { color:#bbb; }
-
-/* ── 右键菜单 ── */
-#ctx-menu {
-  position:fixed; background:#ffffff; border:1px solid #e0e2ea; border-radius:8px;
-  padding:5px 0; z-index:999; display:none; min-width:140px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-}
-.ctx-item { padding:8px 15px; font-size:12.5px; cursor:pointer; color:#444; }
-.ctx-item:hover { background:#f0f2f9; }
-.ctx-item .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:8px; }
-
-/* 滚动条 */
-::-webkit-scrollbar { width:3px; }
-::-webkit-scrollbar-track { background:#f4f5f9; }
-::-webkit-scrollbar-thumb { background:#d0d4e0; border-radius:2px; }
+#legend .row { display: flex; align-items: center; gap: 7px; color: #666; }
+#legend .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+#stats { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #bbb; pointer-events: none; z-index: 5; background: rgba(250,250,247,.8); padding: 3px 10px; border-radius: 10px; }
+#hover-tooltip { position: fixed; pointer-events: none; background: rgba(250,250,247,.95); border: 1px solid #e0ddd6; border-radius: 6px; padding: 6px 10px; font-size: 11px; color: #333; box-shadow: 0 2px 12px rgba(0,0,0,.1); max-width: 220px; display: none; z-index: 50; line-height: 1.4; }
 </style>
 </head>
 <body>
 
-<div id="graph-area">
-  <svg id="graph"></svg>
-
-  <div id="header">
-    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#888;text-decoration:none;margin-bottom:6px;padding:3px 10px;background:rgba(255,255,255,0.9);border:1px solid #e0e2ea;border-radius:12px;" onmouseover="this.style.color='#4a6ef7'" onmouseout="this.style.color='#888'">← 返回看板</a>
-    <h1>知识图谱</h1>
-    <p>点击节点展开 · 双击切换状态 · 右键更多</p>
-  </div>
-
+<div id="topbar">
+  <a id="home-btn" href="index.html">← 首页</a>
+  <span id="topbar-title">基础课知识图谱</span>
+  <div class="divider"></div>
+  <button class="filter-btn active" id="btn-all" onclick="filterType('all')" style="background:#6b6b6b;color:#fff">All</button>
+  <button class="filter-btn" id="btn-synthesis" onclick="filterType('synthesis')">总纲</button>
+  <button class="filter-btn" id="btn-subject" onclick="filterType('subject')">学科</button>
+  <button class="filter-btn" id="btn-concept" onclick="filterType('concept')">知识点</button>
+  <button class="filter-btn" id="btn-source" onclick="filterType('source')">资料</button>
+  <div class="divider"></div>
+  <button class="filter-btn" onclick="clearAll()" style="color:#888">Reset</button>
   <div id="search-wrap">
-    <input id="search" type="text" placeholder="🔍 搜索节点…">
-  </div>
-
-  <div id="dashboard">
-    <div id="dash-title">学习进度</div>
-    <div id="dash-total-label">加载中…</div>
-    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="total-bar" style="width:0%"></div></div>
-
-    <div class="cat-group-label">📚 专业课基础</div>
-    <div class="cat-progress">
-      <div class="cat-progress-label">算法与数据结构 <span id="pct-algo">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-algo" id="bar-algo" style="width:0%"></div></div>
-    </div>
-    <div class="cat-progress">
-      <div class="cat-progress-label">系统与网络 <span id="pct-sys">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-sys" id="bar-sys" style="width:0%"></div></div>
-    </div>
-    <div class="cat-progress">
-      <div class="cat-progress-label">AI 基础 <span id="pct-ai">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-ai" id="bar-ai" style="width:0%"></div></div>
-    </div>
-
-    <div class="cat-group-label">💻 编程与实验</div>
-    <div class="cat-progress">
-      <div class="cat-progress-label">开发工具链 <span id="pct-dev">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-dev" id="bar-dev" style="width:0%"></div></div>
-    </div>
-    <div class="cat-progress">
-      <div class="cat-progress-label">实验工程 <span id="pct-exp">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-exp" id="bar-exp" style="width:0%"></div></div>
-    </div>
-
-    <div class="cat-group-label">🎓 学术素养</div>
-    <div class="cat-progress">
-      <div class="cat-progress-label">文献与调研 <span id="pct-survey">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-survey" id="bar-survey" style="width:0%"></div></div>
-    </div>
-    <div class="cat-progress">
-      <div class="cat-progress-label">输出与表达 <span id="pct-output">0%</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar-fill cat-bar-output" id="bar-output" style="width:0%"></div></div>
-    </div>
-
-    <button id="btn-screenshot">📸 生成进度截图</button>
-  </div>
-
-  <div id="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:#4a90e0"></div>专业课基础</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#43c87a"></div>编程与实验</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e0a83a"></div>学术素养</div>
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M14 14l3.5 3.5"/></svg>
+    <input id="search-box" placeholder="Search…" oninput="searchNodes(this.value)" />
   </div>
 </div>
 
-<!-- 右侧详情面板 -->
-<div id="detail-panel" class="hidden">
+<svg id="graph">
+  <defs>
+    <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L6,3 z" fill="#c8c4bc"/>
+    </marker>
+  </defs>
+</svg>
+
+<div id="hover-tooltip"></div>
+
+<div id="legend">
+  <div class="row"><div class="dot" style="background:#E91E63"></div>总纲</div>
+  <div class="row"><div class="dot" style="background:#7B68EE"></div>学科</div>
+  <div class="row"><div class="dot" style="background:#29b6f6"></div>知识点</div>
+  <div class="row"><div class="dot" style="background:#4caf50"></div>资料</div>
+  <div class="row"><div class="dot" style="background:#f59e0b"></div>有笔记</div>
+</div>
+<div id="stats"></div>
+
+<div id="detail">
   <div id="detail-header">
-    <div id="detail-title">—</div>
-    <div id="detail-cat-badge">—</div>
-  </div>
-  <div id="detail-body">
-    <div id="detail-desc"></div>
-    <div id="detail-links">
-      <h4>关联节点</h4>
-      <div id="detail-links-list"></div>
+    <div id="detail-header-top">
+      <div id="d-title"></div>
+      <div id="close-btn" onclick="closeDetail()">✕</div>
     </div>
-    <div id="detail-note-label">我的笔记</div>
-    <textarea id="detail-note" placeholder="记录你的理解、疑问或复习要点…"></textarea>
+    <span id="d-badge" class="type-badge"></span>
   </div>
-  <div id="detail-footer">
-    <div class="status-btns">
-      <button class="status-btn s-todo"     data-s="todo">⚪ 未学</button>
-      <button class="status-btn s-learning" data-s="learning">🟡 学习中</button>
-      <button class="status-btn s-mastered" data-s="mastered">🟢 已掌握</button>
+  <div id="detail-tabs">
+    <button class="tab-btn active" onclick="switchTab('info')">📋 信息</button>
+    <button class="tab-btn" onclick="switchTab('note')">📝 笔记</button>
+    <button class="tab-btn" onclick="switchTab('quiz')">🎯 考试</button>
+  </div>
+  <div id="detail-body"></div>
+</div>
+
+<div id="quiz-modal">
+  <div id="quiz-box">
+    <h2 id="quiz-title"></h2>
+    <div class="quiz-meta" id="quiz-meta"></div>
+    <div id="quiz-questions"></div>
+    <div id="quiz-footer">
+      <button id="quiz-submit" onclick="submitQuiz()">提交答案</button>
+      <button id="quiz-close-btn" onclick="closeQuiz()">关闭</button>
+      <span id="quiz-result"></span>
     </div>
   </div>
 </div>
 
-<!-- 右键菜单 -->
-<div id="ctx-menu">
-  <div class="ctx-item" data-s="todo"><span class="dot" style="background:#333;border:1px solid #555"></span>标记未学</div>
-  <div class="ctx-item" data-s="learning"><span class="dot" style="background:#ffe066"></span>标记学习中</div>
-  <div class="ctx-item" data-s="mastered"><span class="dot" style="background:#43c87a"></span>标记已掌握</div>
-</div>
-
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════
-// 数据：7 子分类，52 节点，80+ 条边
-// cat: algo / sys / ai / dev / exp / survey / output
-// anchor:true 表示锚点节点（稍大）
-// ═══════════════════════════════════════════════════════
-const NODES = [
-
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  // 算法与数据结构 (algo) 蓝
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  { id:"ds",        label:"数据结构",     cat:"algo", anchor:true,
-    desc:"数组、链表、栈/队列、树、图、堆、哈希表。掌握每种结构的适用场景和增删查的时间复杂度，是刷题和面试的基础。" },
-  { id:"sort",      label:"排序算法",     cat:"algo",
-    desc:"快排O(nlogn)平均/O(n²)最坏；归并O(nlogn)稳定；堆排O(nlogn)原地不稳定；计数/基数O(n+k)非比较。手写快排是高频考点。" },
-  { id:"tree",      label:"二叉树",       cat:"algo",
-    desc:"前/中/后序遍历（递归+迭代模板）、层序BFS、BST（查找/插入/删除）、AVL/红黑树平衡条件。DFS递归框架要烂熟于心。" },
-  { id:"graph_ds",  label:"图算法",       cat:"algo",
-    desc:"BFS/DFS遍历、Dijkstra最短路（堆优化O((V+E)logV)）、Floyd全源O(V³)、Kruskal/Prim最小生成树、拓扑排序（Kahn算法）、并查集。" },
-  { id:"dp",        label:"动态规划",     cat:"algo",
-    desc:"状态定义→转移方程→初始化→遍历顺序。经典：背包、LCS、LIS、编辑距离、矩阵链乘。优化：滚动数组、单调队列、斜率优化。" },
-  { id:"complexity",label:"复杂度分析",   cat:"algo",
-    desc:"时间/空间大O记号，摊还分析，Master定理（分治递归分析）。能快速判断算法效率是写好代码的基本功。" },
-  { id:"hash",      label:"哈希表",       cat:"algo",
-    desc:"哈希函数设计、冲突解决（链地址/开放寻址）、装载因子、再哈希。Python dict / C++ unordered_map的底层原理。" },
-
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  // 系统与网络 (sys) 紫
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  { id:"os",        label:"操作系统",     cat:"sys", anchor:true,
-    desc:"进程/线程管理、调度算法、内存管理（虚拟内存/分页/TLB）、文件系统、I/O模型、死锁（4条件+银行家算法）。" },
-  { id:"process",   label:"进程与线程",   cat:"sys",
-    desc:"进程=资源分配单位，线程=CPU调度单位。PCB结构、五状态转换、进程通信（管道/信号量/共享内存/消息队列）、协程概念。" },
-  { id:"schedule",  label:"调度算法",     cat:"sys",
-    desc:"FCFS/SJF/RR时间片轮转/优先级/多级反馈队列。评价指标：CPU利用率、吞吐量、周转时间、等待时间、响应时间。" },
-  { id:"memory",    label:"内存管理",     cat:"sys",
-    desc:"虚拟地址空间、分页（页表/多级页表）、TLB、缺页中断、页面置换（FIFO/LRU/Clock）、内存碎片（内/外碎片）。" },
-  { id:"network",   label:"计算机网络",   cat:"sys", anchor:true,
-    desc:"OSI七层/TCP-IP四层模型，各层协议职责，子网划分/CIDR，路由协议（RIP/OSPF/BGP），HTTP/HTTPS/DNS/ARP/ICMP。" },
-  { id:"tcpip",     label:"TCP/IP",       cat:"sys",
-    desc:"三次握手（SYN→SYN-ACK→ACK）、四次挥手、TIME_WAIT=2MSL原因、拥塞控制（慢启动/拥塞避免/快重传/快恢复）、滑动窗口。" },
-  { id:"http",      label:"HTTP/HTTPS",   cat:"sys",
-    desc:"HTTP无状态、请求方法(GET/POST等)、常用状态码、Cookie/Session、HTTP2多路复用。HTTPS=TLS+HTTP，握手流程，证书链验证。" },
-  { id:"ca",        label:"计算机组成",   cat:"sys", anchor:true,
-    desc:"指令集体系结构（CISC/RISC）、CPU组成（ALU/寄存器/控制器）、总线、Cache层次结构（L1/L2/L3）、I/O接口与DMA。" },
-  { id:"cache",     label:"Cache原理",    cat:"sys",
-    desc:"时间/空间局部性原理、Cache映射（直接/全相联/组相联）、替换策略（LRU/随机）、写策略（写直达/写回/写分配）。" },
-  { id:"pipeline",  label:"流水线",       cat:"sys",
-    desc:"5级流水线（IF/ID/EX/MEM/WB）、吞吐率与加速比、流水线冒险（结构/数据/控制）、数据前递、分支预测（静态/动态BTB）。" },
-
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  // AI 基础 (ai) 青蓝
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  { id:"ml_basic",  label:"机器学习",     cat:"ai", anchor:true,
-    desc:"监督/无监督/强化学习范式，损失函数，梯度下降（SGD/Momentum/Adam），正则化（L1/L2/Dropout），偏差-方差分解，交叉验证。" },
-  { id:"dl_basic",  label:"深度学习",     cat:"ai", anchor:true,
-    desc:"BP反向传播（链式法则），激活函数（ReLU/GELU/Sigmoid/Tanh），BatchNorm/LayerNorm，优化器（Adam/AdamW），学习率调度。" },
-  { id:"conv",      label:"CNN",          cat:"ai",
-    desc:"卷积核/步长/填充/输出尺寸计算，感受野，池化层，经典架构：LeNet→AlexNet→VGG→ResNet（残差连接）→EfficientNet。" },
-  { id:"rnn",       label:"RNN/LSTM",     cat:"ai",
-    desc:"RNN梯度消失问题，LSTM三门控（遗忘/输入/输出）+cell state，GRU简化。序列建模：NLP、时序预测、强化学习policy。" },
-  { id:"transformer", label:"Transformer", cat:"ai", anchor:true,
-    desc:"Scaled Dot-Product Attention，Multi-Head Attention，位置编码（正弦/可学习），Pre-LN vs Post-LN，FFN，Encoder-Decoder架构。" },
-  { id:"attention", label:"注意力机制",   cat:"ai",
-    desc:"Q/K/V矩阵，Self-Attention O(n²d)复杂度，Cross-Attention（Decoder中），高效Attention变种（Flash Attention/线性注意力）。" },
-  { id:"pretrain",  label:"预训练与微调", cat:"ai",
-    desc:"BERT（MLM+NSP预训练）、GPT（自回归）、预训练→微调范式、LoRA/Adapter等参数高效微调（PEFT）方法、提示工程。" },
-  { id:"eval",      label:"评估指标",     cat:"ai",
-    desc:"分类：Acc/Precision/Recall/F1/AUC-ROC。检测：mAP/IoU。生成：BLEU/ROUGE/Perplexity。统计检验：配对t检验/置信区间。" },
-
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  // 开发工具链 (dev) 绿
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  { id:"python",    label:"Python",       cat:"dev", anchor:true,
-    desc:"列推导式、生成器、装饰器、上下文管理器、类型注解、async/await。科研常用：NumPy向量化、Pandas数据处理、Matplotlib/Seaborn可视化。" },
-  { id:"pytorch",   label:"PyTorch",      cat:"dev", anchor:true,
-    desc:"Tensor/autograd、nn.Module、DataLoader、自定义Loss/Optimizer。分布式训练（DDP）、混合精度（AMP）、模型序列化与加载。" },
-  { id:"git",       label:"Git",          cat:"dev",
-    desc:"commit/branch/merge/rebase，GitHub协作（fork→PR→code review），实验代码分支隔离，.gitignore排除大文件，Tag版本标记。" },
-  { id:"linux",     label:"Linux",        cat:"dev",
-    desc:"常用命令（ls/grep/find/ps/kill/chmod），Shell脚本，管道与重定向，进程管理，环境变量，cron定时，系统监控（htop/iostat）。" },
-  { id:"vscode",    label:"IDE与调试",    cat:"dev",
-    desc:"VSCode断点调试/pdb，远程SSH开发，Python/Jupyter扩展，代码格式化（black/flake8），快捷键与效率技巧。" },
-
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  // 实验工程 (exp) 青
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  { id:"server",    label:"服务器",       cat:"exp", anchor:true,
-    desc:"GPU资源管理（nvidia-smi/watch），conda虚拟环境，SLURM调度（sbatch/squeue/scancel），tmux会话保持，scp/rsync传文件。" },
-  { id:"env",       label:"环境管理",     cat:"exp",
-    desc:"conda/pip/poetry依赖管理，requirements.txt和environment.yml，CUDA版本与PyTorch对应关系，Docker容器化实验复现。" },
-  { id:"exp_mgmt",  label:"实验管理",     cat:"exp",
-    desc:"wandb/TensorBoard记录loss/metric曲线，YAML配置文件管理超参，每次实验独立目录保存checkpoint和log，Hydra配置框架。" },
-  { id:"debug",     label:"调试技巧",     cat:"exp",
-    desc:"assert检查shape/dtype，打印中间梯度，梯度不更新排查（loss.item()/zero_grad遗漏），NaN/Inf追踪，数值稳定性技巧。" },
-  { id:"repro",     label:"可复现性",     cat:"exp",
-    desc:"固定随机种子（torch/numpy/random），记录硬件与软件版本，代码+数据+config一同存档，Dockerfile保证跨机器一致性。" },
-  { id:"data_proc", label:"数据处理",     cat:"exp",
-    desc:"数据清洗与预处理，DataLoader自定义collate_fn，数据增强策略（albumentations/torchvision.transforms），不平衡数据采样（over/under sampling）。" },
-
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  // 文献与调研 (survey) 橙
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  { id:"paper_search", label:"论文检索",  cat:"survey", anchor:true,
-    desc:"Google Scholar/arXiv/Semantic Scholar，关键词组合策略，引用追踪（引用了谁/被谁引）。订阅顶会alert（CVPR/NeurIPS/ACL/ICLR）。" },
-  { id:"paper_read",   label:"论文精读",  cat:"survey",
-    desc:"三遍读法：①快扫（摘要/图表/结论判断值不值）→②通读（理解方法和实验）→③精读（推导细节/复现关键实验）。重点看ablation study。" },
-  { id:"field_survey", label:"领域调研",  cat:"survey",
-    desc:"梳理方向发展脉络：经典baseline→近3年SOTA→当前open problem。用Papers with Code追踪benchmark，画技术演进时间线。" },
-  { id:"ref_mgmt",     label:"文献管理",  cat:"survey",
-    desc:"Zotero分类标签+注释，导出bibtex，阅读时记录：核心贡献/创新点/局限性/可借鉴方法。Connected Papers图谱关联分析。" },
-  { id:"idea",         label:"想Idea",    cat:"survey", anchor:true,
-    desc:"从gap出发：现有方法哪里做不好？什么假设能解决？类比其他领域方法迁移。好idea要有strong motivation：为什么这样设计比baseline好？" },
-
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  // 输出与表达 (output) 红粉
-  // ━━━━━━━━━━━━━━━━━━━━━━
-  { id:"latex",       label:"LaTeX",      cat:"output",
-    desc:"equation/figure/table/algorithm环境，biblatex/natbib参考文献，Overleaf在线协作，图表用矢量格式（.pdf/.eps），自动化脚本批量编译。" },
-  { id:"paper_write", label:"论文写作",   cat:"output", anchor:true,
-    desc:"结构：Abstract→Intro→Related Work→Method→Experiments→Conclusion。写作顺序：先Method+Experiments，后Intro+Abstract。每句话有且只有一个作用。" },
-  { id:"rebuttal",    label:"Rebuttal",   cat:"output",
-    desc:"审稿意见逐条回应，态度诚恳专业。对合理质疑：承认局限并补充实验；对误解：礼貌澄清+指向文中对应位置。DDL前12小时完成初稿。" },
-  { id:"slides",      label:"学术报告",   cat:"output",
-    desc:"一页一核心点，图示优于文字，动画克制。讲paper结构：背景→问题→方法→结果→局限性。组会汇报时间控制，预留Q&A时间。" },
-  { id:"poster",      label:"学术海报",   cat:"output",
-    desc:"竖版A0/横版A0，3分钟电梯演讲配合。模块：贡献摘要/方法图/核心实验结果。视觉层次清晰，远处可读主标题，近处可读细节。" },
-  { id:"writing_en",  label:"英文写作",   cat:"output",
-    desc:"学术英语规范：避免口语化，主动/被动语态选择，时态一致（过去式描述实验/现在式描述结论），精确用词，Grammarly辅助校对。" },
+const rawNodes = [
+  { id:"synthesis-basics", type:"synthesis", label:"基础课", desc:"基础课总纲——涵盖人工智能基础、计算机视觉、机器学习中的优化方法、深度学习与强化学习四大板块。" },
+  { id:"subject-ai-basics", type:"subject", label:"人工智能基础", desc:"搜索算法、知识表示、逻辑推理、概率模型（贝叶斯网络）、不确定性推理及 AI 伦理。" },
+  { id:"subject-cv", type:"subject", label:"计算机视觉", desc:"图像处理、特征提取、目标检测、图像分割、3D 视觉与深度估计。" },
+  { id:"subject-optim", type:"subject", label:"机器学习中的优化方法", desc:"梯度下降族、二阶方法、凸优化基础、约束优化、超参数调优。" },
+  { id:"subject-dl-rl", type:"subject", label:"深度学习和强化学习", desc:"CNN/RNN/Transformer/生成模型与强化学习（MDP/Q-learning/策略梯度/PPO）。" },
+  { id:"concept-search", type:"concept", label:"搜索算法", desc:"无信息搜索（BFS/DFS/迭代加深）与启发式搜索（A*/贪婪）——状态空间、路径代价、启发函数可容性。" },
+  { id:"concept-bayes", type:"concept", label:"贝叶斯网络", desc:"概率图模型——条件独立性、联合概率因式分解、变量消元、置信传播、朴素贝叶斯分类器。" },
+  { id:"concept-knowledge-repr", type:"concept", label:"知识表示与推理", desc:"一阶逻辑（FOL）、Horn 子句、归结原理、产生式规则、本体（Ontology）、知识图谱基础。" },
+  { id:"concept-ml-basics", type:"concept", label:"机器学习基础", desc:"监督/无监督/半监督学习、偏差-方差权衡、交叉验证、正则化（L1/L2）、SVM、决策树与集成学习。" },
+  { id:"concept-image-proc", type:"concept", label:"图像处理基础", desc:"卷积滤波（高斯/拉普拉斯/Sobel）、频域分析（FFT）、形态学操作、直方图均衡化、色彩空间。" },
+  { id:"concept-feature-extract", type:"concept", label:"特征提取", desc:"手工特征：SIFT、HOG、ORB；深度特征：CNN 中间层激活、FPN；特征匹配与单应性矩阵。" },
+  { id:"concept-detection", type:"concept", label:"目标检测", desc:"两阶段检测（Faster R-CNN）、单阶段检测（YOLO/SSD/FCOS）、NMS、mAP 评估指标、锚框机制。" },
+  { id:"concept-segmentation", type:"concept", label:"图像分割", desc:"语义分割（FCN/DeepLab/SegFormer）、实例分割（Mask R-CNN）、全景分割；评估指标 mIoU。" },
+  { id:"concept-gd", type:"concept", label:"梯度下降族", desc:"批量/随机/小批量 GD；动量法；AdaGrad/RMSProp/Adam/AdamW；学习率调度；梯度裁剪。" },
+  { id:"concept-convex", type:"concept", label:"凸优化基础", desc:"凸集与凸函数、一阶/二阶条件、次梯度法、投影梯度法、对偶理论（拉格朗日/KKT 条件）。" },
+  { id:"concept-second-order", type:"concept", label:"二阶优化方法", desc:"牛顿法（Hessian 逆）、拟牛顿法（L-BFGS/BFGS）、共轭梯度法；在深度学习中的应用与局限。" },
+  { id:"concept-regularization", type:"concept", label:"正则化与泛化", desc:"L1/L2 正则化、Dropout、Batch Normalization、Early Stopping、数据增强；PAC 学习、VC 维。" },
+  { id:"concept-cnn", type:"concept", label:"卷积神经网络", desc:"卷积层/池化层/全连接层、感受野、经典架构（AlexNet/VGG/ResNet/EfficientNet）、深度可分离卷积。" },
+  { id:"concept-transformer", type:"concept", label:"Transformer & Attention", desc:"Self-Attention（Q/K/V）、Multi-Head Attention、位置编码、BERT/GPT 架构、Vision Transformer（ViT）。" },
+  { id:"concept-generative", type:"concept", label:"生成模型", desc:"VAE（ELBO 推导）、GAN（对抗训练、模式崩溃）、扩散模型（DDPM/Score Matching）。" },
+  { id:"concept-rl", type:"concept", label:"强化学习基础", desc:"MDP（状态/动作/奖励/转移）、Bellman 方程、Q-learning、SARSA、DQN；探索与利用权衡。" },
+  { id:"concept-policy-grad", type:"concept", label:"策略梯度方法", desc:"REINFORCE、Actor-Critic（A2C/A3C）、PPO（Clipped Objective）、TRPO、SAC（最大熵 RL）。" },
+  { id:"source-russel-norvig", type:"source", label:"AIMA", desc:"《Artificial Intelligence: A Modern Approach》第4版——AI 基础权威教材。", url:"https://aima.cs.berkeley.edu/" },
+  { id:"source-cs231n", type:"source", label:"CS231n", desc:"Stanford CS231n: Deep Learning for Computer Vision——课程笔记与作业。", url:"https://cs231n.stanford.edu/" },
+  { id:"source-goodfellow", type:"source", label:"Deep Learning Book", desc:"Goodfellow et al.《Deep Learning》——深度学习圣经。", url:"https://www.deeplearningbook.org/" },
+  { id:"source-sutton-barto", type:"source", label:"Sutton & Barto", desc:"《Reinforcement Learning: An Introduction》第2版——强化学习权威教材。", url:"http://incompleteideas.net/book/the-book-2nd.html" },
+  { id:"source-boyd-convex", type:"source", label:"Boyd Convex Opt", desc:"凸优化经典——对偶理论、KKT 条件、内点法。", url:"https://web.stanford.edu/~boyd/cvxbook/" },
+  { id:"source-d2l", type:"source", label:"动手学深度学习", desc:"李沐等《动手学深度学习》——PyTorch 代码实战，免费在线。", url:"https://zh.d2l.ai/" },
+  { id:"source-spinning-up", type:"source", label:"OpenAI Spinning Up", desc:"OpenAI Spinning Up in Deep RL——PPO/SAC/TD3 实现，附代码框架。", url:"https://spinningup.openai.com/" }
 ];
 
-const EDGES = [
-  // ────────── algo 内部 ──────────
-  { s:"ds",         t:"sort",       w:2 },
-  { s:"ds",         t:"tree",       w:2 },
-  { s:"ds",         t:"graph_ds",   w:2 },
-  { s:"ds",         t:"hash",       w:2 },
-  { s:"ds",         t:"dp",         w:1 },
-  { s:"tree",       t:"sort",       w:1 },
-  { s:"tree",       t:"graph_ds",   w:1 },
-  { s:"dp",         t:"graph_ds",   w:1 },
-  { s:"complexity", t:"ds",         w:1 },
-  { s:"complexity", t:"sort",       w:1 },
-  { s:"complexity", t:"dp",         w:1 },
-  { s:"hash",       t:"graph_ds",   w:1 },
-
-  // ────────── sys 内部 ──────────
-  { s:"os",         t:"process",    w:2 },
-  { s:"os",         t:"schedule",   w:2 },
-  { s:"os",         t:"memory",     w:2 },
-  { s:"process",    t:"schedule",   w:1 },
-  { s:"process",    t:"memory",     w:1 },
-  { s:"network",    t:"tcpip",      w:2 },
-  { s:"network",    t:"http",       w:2 },
-  { s:"tcpip",      t:"http",       w:1 },
-  { s:"ca",         t:"cache",      w:2 },
-  { s:"ca",         t:"pipeline",   w:2 },
-  { s:"cache",      t:"pipeline",   w:1 },
-  { s:"memory",     t:"cache",      w:1 },
-
-  // ────────── ai 内部 ──────────
-  { s:"ml_basic",   t:"dl_basic",   w:2 },
-  { s:"ml_basic",   t:"eval",       w:1 },
-  { s:"dl_basic",   t:"conv",       w:2 },
-  { s:"dl_basic",   t:"rnn",        w:2 },
-  { s:"dl_basic",   t:"transformer",w:2 },
-  { s:"dl_basic",   t:"attention",  w:2 },
-  { s:"conv",       t:"attention",  w:1 },
-  { s:"rnn",        t:"attention",  w:1 },
-  { s:"transformer",t:"attention",  w:2 },
-  { s:"transformer",t:"pretrain",   w:2 },
-  { s:"pretrain",   t:"attention",  w:1 },
-  { s:"eval",       t:"dl_basic",   w:1 },
-
-  // ────────── dev 内部 ──────────
-  { s:"pytorch",    t:"python",     w:2 },
-  { s:"pytorch",    t:"vscode",     w:1 },
-  { s:"git",        t:"python",     w:1 },
-  { s:"linux",      t:"git",        w:1 },
-  { s:"vscode",     t:"python",     w:1 },
-  { s:"vscode",     t:"linux",      w:1 },
-
-  // ────────── exp 内部 ──────────
-  { s:"server",     t:"linux",      w:2 },
-  { s:"server",     t:"env",        w:2 },
-  { s:"env",        t:"linux",      w:1 },
-  { s:"exp_mgmt",   t:"pytorch",    w:2 },
-  { s:"exp_mgmt",   t:"git",        w:1 },
-  { s:"exp_mgmt",   t:"server",     w:1 },
-  { s:"debug",      t:"pytorch",    w:2 },
-  { s:"debug",      t:"vscode",     w:1 },
-  { s:"repro",      t:"env",        w:2 },
-  { s:"repro",      t:"git",        w:1 },
-  { s:"repro",      t:"exp_mgmt",   w:1 },
-  { s:"data_proc",  t:"python",     w:2 },
-  { s:"data_proc",  t:"pytorch",    w:1 },
-
-  // ────────── survey 内部 ──────────
-  { s:"paper_read",   t:"paper_search", w:2 },
-  { s:"field_survey", t:"paper_read",   w:2 },
-  { s:"field_survey", t:"paper_search", w:1 },
-  { s:"idea",         t:"field_survey", w:2 },
-  { s:"idea",         t:"paper_read",   w:1 },
-  { s:"ref_mgmt",     t:"paper_search", w:1 },
-  { s:"ref_mgmt",     t:"paper_read",   w:1 },
-
-  // ────────── output 内部 ──────────
-  { s:"paper_write",  t:"latex",      w:2 },
-  { s:"paper_write",  t:"writing_en", w:2 },
-  { s:"rebuttal",     t:"paper_write",w:2 },
-  { s:"slides",       t:"paper_write",w:1 },
-  { s:"poster",       t:"slides",     w:1 },
-  { s:"poster",       t:"paper_write",w:1 },
-  { s:"writing_en",   t:"latex",      w:1 },
-
-  // ══════════════ 跨类核心连边 ══════════════
-
-  // algo ↔ ai
-  { s:"ds",         t:"ml_basic",   w:1 },
-  { s:"dp",         t:"ml_basic",   w:1 },
-  { s:"graph_ds",   t:"dl_basic",   w:1 },
-  { s:"complexity", t:"attention",  w:1 },
-
-  // sys ↔ ai
-  { s:"memory",     t:"dl_basic",   w:1 },
-  { s:"cache",      t:"dl_basic",   w:1 },
-  { s:"pipeline",   t:"transformer",w:1 },
-  { s:"os",         t:"server",     w:1 },
-
-  // algo ↔ dev
-  { s:"ds",         t:"python",     w:1 },
-  { s:"sort",       t:"python",     w:1 },
-  { s:"dp",         t:"pytorch",    w:1 },
-
-  // ai ↔ dev
-  { s:"dl_basic",   t:"pytorch",    w:2 },
-  { s:"conv",       t:"pytorch",    w:1 },
-  { s:"transformer",t:"pytorch",    w:1 },
-  { s:"pretrain",   t:"pytorch",    w:1 },
-  { s:"ml_basic",   t:"python",     w:1 },
-  { s:"eval",       t:"python",     w:1 },
-
-  // ai ↔ exp
-  { s:"dl_basic",   t:"exp_mgmt",   w:1 },
-  { s:"transformer",t:"data_proc",  w:1 },
-  { s:"eval",       t:"exp_mgmt",   w:1 },
-  { s:"pretrain",   t:"data_proc",  w:1 },
-
-  // dev ↔ exp
-  { s:"pytorch",    t:"exp_mgmt",   w:2 },
-  { s:"pytorch",    t:"debug",      w:2 },
-  { s:"python",     t:"data_proc",  w:1 },
-
-  // survey ↔ ai
-  { s:"field_survey",t:"transformer",w:1 },
-  { s:"field_survey",t:"pretrain",  w:1 },
-  { s:"idea",       t:"dl_basic",   w:1 },
-  { s:"idea",       t:"eval",       w:1 },
-
-  // survey ↔ output
-  { s:"idea",       t:"paper_write",w:2 },
-  { s:"field_survey",t:"paper_write",w:1 },
-  { s:"ref_mgmt",   t:"latex",      w:1 },
-  { s:"paper_read", t:"writing_en", w:1 },
-
-  // exp ↔ output
-  { s:"exp_mgmt",   t:"paper_write",w:2 },
-  { s:"data_proc",  t:"paper_write",w:1 },
-  { s:"repro",      t:"paper_write",w:1 },
-  { s:"debug",      t:"idea",       w:1 },
-
-  // sys ↔ dev
-  { s:"linux",      t:"os",         w:1 },
-  { s:"http",       t:"python",     w:1 },
-
-  // output ↔ survey
-  { s:"slides",     t:"field_survey",w:1 },
-  { s:"rebuttal",   t:"idea",       w:1 },
+const rawEdges = [
+  {source:"synthesis-basics",target:"subject-ai-basics"},
+  {source:"synthesis-basics",target:"subject-cv"},
+  {source:"synthesis-basics",target:"subject-optim"},
+  {source:"synthesis-basics",target:"subject-dl-rl"},
+  {source:"subject-ai-basics",target:"concept-search"},
+  {source:"subject-ai-basics",target:"concept-bayes"},
+  {source:"subject-ai-basics",target:"concept-knowledge-repr"},
+  {source:"subject-ai-basics",target:"concept-ml-basics"},
+  {source:"subject-ai-basics",target:"source-russel-norvig"},
+  {source:"subject-cv",target:"concept-image-proc"},
+  {source:"subject-cv",target:"concept-feature-extract"},
+  {source:"subject-cv",target:"concept-detection"},
+  {source:"subject-cv",target:"concept-segmentation"},
+  {source:"subject-cv",target:"source-cs231n"},
+  {source:"subject-optim",target:"concept-gd"},
+  {source:"subject-optim",target:"concept-convex"},
+  {source:"subject-optim",target:"concept-second-order"},
+  {source:"subject-optim",target:"concept-regularization"},
+  {source:"subject-optim",target:"source-boyd-convex"},
+  {source:"subject-optim",target:"source-goodfellow"},
+  {source:"subject-dl-rl",target:"concept-cnn"},
+  {source:"subject-dl-rl",target:"concept-transformer"},
+  {source:"subject-dl-rl",target:"concept-generative"},
+  {source:"subject-dl-rl",target:"concept-rl"},
+  {source:"subject-dl-rl",target:"concept-policy-grad"},
+  {source:"subject-dl-rl",target:"source-goodfellow"},
+  {source:"subject-dl-rl",target:"source-d2l"},
+  {source:"subject-dl-rl",target:"source-sutton-barto"},
+  {source:"subject-dl-rl",target:"source-spinning-up"},
+  {source:"concept-ml-basics",target:"concept-gd"},
+  {source:"concept-ml-basics",target:"concept-regularization"},
+  {source:"concept-cnn",target:"concept-image-proc"},
+  {source:"concept-cnn",target:"concept-feature-extract"},
+  {source:"concept-cnn",target:"concept-detection"},
+  {source:"concept-cnn",target:"concept-segmentation"},
+  {source:"concept-transformer",target:"concept-detection"},
+  {source:"concept-transformer",target:"concept-segmentation"},
+  {source:"concept-gd",target:"concept-cnn"},
+  {source:"concept-gd",target:"concept-transformer"},
+  {source:"concept-regularization",target:"concept-cnn"},
+  {source:"concept-bayes",target:"concept-rl"},
+  {source:"concept-rl",target:"concept-policy-grad"},
+  {source:"concept-generative",target:"concept-transformer"},
+  {source:"concept-second-order",target:"concept-convex"},
+  {source:"concept-feature-extract",target:"concept-detection"},
+  {source:"source-cs231n",target:"concept-cnn"},
+  {source:"source-cs231n",target:"concept-detection"},
+  {source:"source-goodfellow",target:"concept-gd"},
+  {source:"source-goodfellow",target:"concept-regularization"},
+  {source:"source-goodfellow",target:"concept-generative"},
+  {source:"source-sutton-barto",target:"concept-rl"},
+  {source:"source-sutton-barto",target:"concept-policy-grad"},
+  {source:"source-spinning-up",target:"concept-policy-grad"},
+  {source:"source-d2l",target:"concept-cnn"},
+  {source:"source-d2l",target:"concept-transformer"},
+  {source:"source-boyd-convex",target:"concept-convex"},
+  {source:"source-russel-norvig",target:"concept-search"},
+  {source:"source-russel-norvig",target:"concept-bayes"}
 ];
 
-// ═══════════════════════════════════════════════════════
-// 状态管理 (localStorage)  — 与 index.html 共享同一个 key
-// ═══════════════════════════════════════════════════════
-const STORAGE_KEY = 'baoyuan_status';
-const NOTE_KEY    = 'baoyuan_notes';
-function loadStatus() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}; } catch{return {};} }
-function saveStatus(o) { localStorage.setItem(STORAGE_KEY, JSON.stringify(o)); }
-function loadNotes()  { try { return JSON.parse(localStorage.getItem(NOTE_KEY))||{}; }   catch{return {};} }
-function saveNotes(o)  { localStorage.setItem(NOTE_KEY,   JSON.stringify(o)); }
-
-let statusMap = loadStatus();
-let notesMap  = loadNotes();
-function getStatus(id) { return statusMap[id] || 'todo'; }
-function setStatus(id, s) { statusMap[id] = s; saveStatus(statusMap); }
-
-// ═══════════════════════════════════════════════════════
-// 子分类元信息
-// ═══════════════════════════════════════════════════════
-const CAT_META = {
-  algo:   { label:'算法与数据结构', group:'course' },
-  sys:    { label:'系统与网络',     group:'course' },
-  ai:     { label:'AI基础',         group:'course' },
-  dev:    { label:'开发工具链',     group:'coding' },
-  exp:    { label:'实验工程',       group:'coding' },
-  survey: { label:'文献与调研',     group:'academic' },
-  output: { label:'输出与表达',     group:'academic' },
+const QUIZ_DATA = {
+  "concept-search": [
+    { q:"A* 算法使用的估价函数 f(n) 由哪两部分组成？", opts:["g(n)+h(n)","h(n)×g(n)","h(n)-g(n)","f(n)=h(n)"], ans:0, explain:"f(n)=g(n)+h(n)，g(n) 是从起点到 n 的实际代价，h(n) 是启发式估计到目标的代价。" },
+    { q:"以下哪种搜索算法保证找到最优解（代价相等时）？", opts:["深度优先搜索(DFS)","广度优先搜索(BFS)","贪婪最佳优先搜索","随机搜索"], ans:1, explain:"BFS 在边代价相等时保证找到最短路径（最优解）。" },
+    { q:"启发式函数 h(n) 可容（admissible）的条件是？", opts:["h(n) 总是高估实际代价","h(n) 总是低估或等于实际代价","h(n) 等于实际代价","h(n)=0"], ans:1, explain:"可容启发式函数不会高估到达目标的实际代价，保证 A* 找到最优解。" },
+    { q:"迭代加深深度优先搜索（IDDFS）的主要优点是？", opts:["速度比 BFS 快","空间复杂度与 DFS 相同同时保证最优性","不需要启发函数","总是比 A* 快"], ans:1, explain:"IDDFS 结合了 BFS 的完备性和最优性，以及 DFS 的低空间复杂度。" }
+  ],
+  "concept-bayes": [
+    { q:"贝叶斯定理 P(A|B) = ？", opts:["P(B|A)·P(B)/P(A)","P(B|A)·P(A)/P(B)","P(A)·P(B)","P(A∩B)/P(A)"], ans:1, explain:"贝叶斯定理：P(A|B) = P(B|A)·P(A) / P(B)，其中 P(A) 是先验，P(B|A) 是似然，P(B) 是证据。" },
+    { q:"朴素贝叶斯分类器的"朴素"假设是指？", opts:["特征之间条件独立","所有特征等权重","先验概率相等","只使用二元特征"], ans:0, explain:"朴素贝叶斯假设在给定类别的条件下，所有特征相互独立，简化了联合概率的计算。" },
+    { q:"贝叶斯网络中，节点之间的有向边表示？", opts:["因果或条件依赖关系","相关性","时间顺序","功能依赖"], ans:0, explain:"贝叶斯网络中有向边 A→B 表示 A 直接影响 B（条件依赖），但不一定是严格因果关系。" },
+    { q:"变量消元法（Variable Elimination）用于？", opts:["学习网络结构","精确推断边际概率","生成随机样本","压缩网络规模"], ans:1, explain:"变量消元是贝叶斯网络中的精确推断算法，通过依次消去非查询变量来计算边际概率。" }
+  ],
+  "concept-knowledge-repr": [
+    { q:"一阶逻辑（FOL）相比命题逻辑的主要扩展是？", opts:["支持概率推理","引入量词（∀, ∃）和谓词","支持时态逻辑","允许模糊真值"], ans:1, explain:"FOL 引入了全称量词和存在量词，以及谓词和函数，使表达能力远强于命题逻辑。" },
+    { q:"Horn 子句的特点是？", opts:["最多一个正文字","恰好两个正文字","所有文字为负","可以有任意多个正文字"], ans:0, explain:"Horn 子句最多包含一个正文字（非否定文字），是逻辑程序设计（如 Prolog）的基础。" },
+    { q:"知识图谱中 RDF 三元组的结构是？", opts:["主语-谓语-宾语","实体-关系-实体","类-属性-值","节点-边-节点"], ans:0, explain:"RDF 使用三元组（主语、谓语、宾语）来表示知识，例如（北京, 是首都, 中国）。" },
+    { q:"归结原理（Resolution）是一种？", opts:["搜索算法","完备的推理规则","概率推断方法","神经网络训练方法"], ans:1, explain:"归结原理是一种用于一阶逻辑的完备推理规则，通过消解互补文字来导出新子句。" }
+  ],
+  "concept-ml-basics": [
+    { q:"偏差-方差权衡中，过拟合通常对应？", opts:["高偏差、低方差","低偏差、高方差","高偏差、高方差","低偏差、低方差"], ans:1, explain:"过拟合模型在训练集上表现很好（低偏差），但泛化能力差（高方差）。" },
+    { q:"L1 正则化（Lasso）的特点是？", opts:["使权重趋向于零但不完全为零","产生稀疏解（部分权重恰好为零）","比 L2 更平滑","等价于权重衰减"], ans:1, explain:"L1 正则化的几何特性导致最优解倾向于落在坐标轴上，产生稀疏解。" },
+    { q:"k 折交叉验证的主要目的是？", opts:["加速模型训练","更可靠地估计模型泛化性能","增加训练数据量","防止梯度消失"], ans:1, explain:"k 折交叉验证将数据分成 k 份，轮流用不同的折作为验证集，得到更可靠的性能估计。" },
+    { q:"随机森林相比单棵决策树的优势是？", opts:["训练速度更快","解释性更强","通过集成降低方差，提高泛化能力","需要更少的数据"], ans:2, explain:"随机森林通过训练多棵决策树并取平均或投票，利用集成学习降低方差。" }
+  ],
+  "concept-image-proc": [
+    { q:"高斯滤波的主要作用是？", opts:["锐化图像边缘","平滑图像、去除噪声","增强对比度","检测边缘"], ans:1, explain:"高斯滤波通过加权平均邻域像素来平滑图像，有效去除高频噪声。" },
+    { q:"Sobel 算子用于？", opts:["图像平滑","颜色空间转换","边缘检测（计算图像梯度）","图像压缩"], ans:2, explain:"Sobel 算子通过计算图像在水平和垂直方向的梯度来检测边缘。" },
+    { q:"直方图均衡化的目的是？", opts:["减少图像文件大小","增强图像对比度","去除图像噪声","检测图像中的物体"], ans:1, explain:"直方图均衡化重新分配像素强度，使强度分布更均匀，从而增强图像的整体对比度。" },
+    { q:"HSV 色彩空间中 S 代表？", opts:["亮度（Brightness）","饱和度（Saturation）","色相（Hue）","阴影（Shadow）"], ans:1, explain:"HSV 分别代表色相（Hue）、饱和度（Saturation）、明度（Value），S 表示颜色的纯度。" }
+  ],
+  "concept-feature-extract": [
+    { q:"SIFT 特征的主要优点是？", opts:["计算速度快","对尺度、旋转、光照变化具有不变性","只适用于彩色图像","需要 GPU 加速"], ans:1, explain:"SIFT 对图像的尺度缩放、旋转和光照变化具有鲁棒性，是经典的手工特征描述子。" },
+    { q:"HOG（方向梯度直方图）特征主要用于？", opts:["图像分类","行人/物体检测","图像分割","图像生成"], ans:1, explain:"HOG 通过统计局部区域的梯度方向分布来描述形状，是行人检测等任务中的经典特征。" },
+    { q:"特征金字塔网络（FPN）的作用是？", opts:["加速特征提取","融合多尺度特征以检测不同大小的物体","减少模型参数","只提取高层语义特征"], ans:1, explain:"FPN 通过自顶向下路径和横向连接融合不同尺度的特征图，使检测器能同时处理大小不同的目标。" },
+    { q:"单应性矩阵（Homography）描述的是？", opts:["两幅图像之间的仿射变换","同一平面在不同视角下的投影变换","图像的旋转变换","颜色空间的映射"], ans:1, explain:"单应性矩阵是一个 3×3 矩阵，描述同一平面场景在两个不同视角下的图像间的映射关系。" }
+  ],
+  "concept-detection": [
+    { q:"Faster R-CNN 中 RPN 的作用是？", opts:["提取图像特征","生成候选目标区域","对候选区域进行分类","计算损失函数"], ans:1, explain:"RPN 在共享的卷积特征图上预测每个位置的锚框是否包含目标，并输出精修的候选框。" },
+    { q:"NMS（非极大值抑制）解决的问题是？", opts:["减少计算量","消除对同一目标的重复检测框","提高小目标检测精度","加速推理速度"], ans:1, explain:"NMS 通过按置信度排序并抑制与高置信度框高度重叠的框，消除重复检测。" },
+    { q:"YOLO 相比两阶段检测器的主要优势是？", opts:["检测精度更高","推理速度更快（单阶段，端到端）","更适合小目标","需要更少训练数据"], ans:1, explain:"YOLO 将检测视为单次回归问题，直接在图像上预测边界框和类别，速度远快于两阶段方法。" },
+    { q:"mAP（mean Average Precision）是？", opts:["单个类别的精度","所有类别平均精度的平均值","召回率的度量","推理时间的度量"], ans:1, explain:"mAP 对每个类别计算 AP（精度-召回率曲线下面积），再取所有类别的平均值。" }
+  ],
+  "concept-segmentation": [
+    { q:"语义分割与实例分割的区别是？", opts:["语义分割更慢","语义分割区分同类不同实例，实例分割不区分","实例分割区分同类不同实例，语义分割不区分","语义分割只能处理二值图像"], ans:2, explain:"语义分割为每个像素分配类别标签但不区分同类的不同实例；实例分割同时完成检测和分割，区分每个独立实例。" },
+    { q:"FCN（全卷积网络）相比传统 CNN 的创新点是？", opts:["使用更深的网络","将全连接层替换为卷积层，支持任意尺寸输入并输出密集预测","使用注意力机制","引入残差连接"], ans:1, explain:"FCN 将分类网络末尾的全连接层改为卷积层，并通过上采样恢复分辨率，实现像素级的密集预测。" },
+    { q:"mIoU 的计算方式是？", opts:["所有像素分类准确率的平均","所有类别 IoU 的平均值","精度和召回率的调和平均","边界像素的准确率"], ans:1, explain:"mIoU 对每个类别计算预测区域与真实区域的交并比，再取所有类别的平均。" },
+    { q:"扩张卷积（Dilated Convolution）在语义分割中的作用是？", opts:["减少参数量","在不增加参数的情况下扩大感受野","加速计算","引入非线性"], ans:1, explain:"扩张卷积通过在卷积核之间插入空洞来扩大感受野，而不增加参数量或降低分辨率。" }
+  ],
+  "concept-gd": [
+    { q:"Adam 优化器结合了哪两种方法？", opts:["SGD 和 AdaGrad","动量法和 RMSProp（自适应学习率）","牛顿法和梯度下降","L1 和 L2 正则化"], ans:1, explain:"Adam 同时维护梯度的一阶矩（动量）和二阶矩（类似 RMSProp 的自适应学习率）的估计。" },
+    { q:"学习率过大可能导致？", opts:["训练过慢","训练不稳定，损失震荡甚至发散","过拟合","梯度消失"], ans:1, explain:"学习率过大时，参数更新步长过大，可能跳过最优解，导致损失函数震荡甚至发散。" },
+    { q:"Warmup 学习率调度的目的是？", opts:["加速训练后期收敛","训练初期使用小学习率，避免不稳定","固定学习率","模拟退火优化"], ans:1, explain:"Warmup 在训练初期从小学习率逐渐增大，使模型参数能稳定更新，避免大学习率导致的早期震荡。" },
+    { q:"梯度裁剪（Gradient Clipping）主要解决什么问题？", opts:["梯度消失","梯度爆炸","学习率过小","过拟合"], ans:1, explain:"梯度裁剪通过限制梯度的范数不超过某阈值，防止 RNN 等网络中出现的梯度爆炸问题。" }
+  ],
+  "concept-convex": [
+    { q:"凸函数满足的条件是？", opts:["f(λx+(1-λ)y) ≥ λf(x)+(1-λ)f(y)","f(λx+(1-λ)y) ≤ λf(x)+(1-λ)f(y)","f''(x) < 0","f'(x) = 0"], ans:1, explain:"凸函数定义：对任意 x,y 和 λ∈[0,1]，f(λx+(1-λ)y) ≤ λf(x)+(1-λ)f(y)，即弦在函数图像上方。" },
+    { q:"KKT 条件用于解决？", opts:["无约束优化","带不等式约束的优化问题","线性方程组","概率推断"], ans:1, explain:"KKT（Karush-Kuhn-Tucker）条件是带不等式和等式约束的优化问题的一阶必要最优性条件。" },
+    { q:"对偶问题（Dual Problem）的特点是？", opts:["与原问题完全等价","对偶最优值≤原问题最优值（弱对偶），强对偶时相等","对偶问题总是更难求解","只适用于线性规划"], ans:1, explain:"弱对偶定理：对偶问题的最优值总是原问题最优值的下界；满足约束规范时强对偶成立，两者相等。" },
+    { q:"次梯度（Subgradient）用于处理？", opts:["光滑凸函数","不可微凸函数（如 L1 范数）","非凸问题","随机优化"], ans:1, explain:"次梯度是梯度在不可微点的推广，用于优化不光滑的凸函数（如 Lasso）。" }
+  ],
+  "concept-second-order": [
+    { q:"牛顿法相比梯度下降的优势是？", opts:["计算更简单","利用曲率信息（Hessian），收敛速度更快（二次收敛）","不需要计算导数","适合大规模问题"], ans:1, explain:"牛顿法利用 Hessian 矩阵（二阶导数）的信息来自适应调整步长方向，在凸问题上具有二次收敛速度。" },
+    { q:"L-BFGS 相比 BFGS 的改进是？", opts:["更精确的 Hessian 近似","只存储最近 m 次迭代的信息（低内存），适合大规模问题","收敛速度更快","不需要线搜索"], ans:1, explain:"L-BFGS 只存储最近几步的梯度差和参数差来隐式近似 Hessian 逆，内存需求从 O(n²) 降到 O(mn)。" },
+    { q:"深度学习中很少使用纯牛顿法的原因是？", opts:["精度不够","计算和存储 Hessian 矩阵的代价为 O(n²)，参数量大时不可行","不适合非凸问题","收敛速度太慢"], ans:1, explain:"对于百万级参数的深度网络，存储 Hessian 需要 O(n²) 空间，计算其逆需要 O(n³) 时间，计算上不可行。" },
+    { q:"共轭梯度法（Conjugate Gradient）的特点是？", opts:["需要计算 Hessian","每次迭代选择与之前搜索方向共轭的新方向，避免重复搜索","总是比梯度下降慢","只适用于非线性问题"], ans:1, explain:"共轭梯度法保证每次搜索方向与之前所有方向共轭，对 n 维二次问题最多 n 步收敛。" }
+  ],
+  "concept-regularization": [
+    { q:"Dropout 在训练时的作用是？", opts:["加速前向传播","随机将神经元输出置零，防止过拟合","增加模型容量","用于批归一化"], ans:1, explain:"Dropout 在每次前向传播时随机将部分神经元输出设为零，相当于训练多个子网络的集成，有效防止过拟合。" },
+    { q:"Batch Normalization 的主要作用是？", opts:["减少参数数量","规范化每层输入分布，加速训练、稳定梯度","替代激活函数","用于数据预处理"], ans:1, explain:"BN 通过归一化每个 mini-batch 的激活值，缓解内部协变量偏移，允许使用更大学习率。" },
+    { q:"Early Stopping 的依据是？", opts:["训练损失达到某阈值","验证集损失开始上升时停止训练","训练轮数达到上限","梯度范数足够小"], ans:1, explain:"Early Stopping 监控验证集损失，当其不再下降甚至上升时停止训练，防止模型在训练集上过拟合。" },
+    { q:"VC 维（VC Dimension）衡量的是？", opts:["模型的参数数量","假设空间的复杂度（能打散的最大样本集大小）","训练集大小","泛化误差的上界"], ans:1, explain:"VC 维是衡量分类器复杂度的指标，定义为能被该分类器打散（任意标记）的最大点集大小，影响泛化误差界。" }
+  ],
+  "concept-cnn": [
+    { q:"卷积层中的感受野（Receptive Field）是指？", opts:["卷积核的大小","输出特征图中一个元素对应输入图像的区域大小","特征图的通道数","步幅的大小"], ans:1, explain:"感受野是输出特征图中某一位置的神经元所能看到的输入图像区域，随网络深度增加而扩大。" },
+    { q:"ResNet 引入残差连接（Skip Connection）解决了什么问题？", opts:["过拟合","梯度消失/爆炸问题，使深层网络可训练","计算速度慢","参数冗余"], ans:1, explain:"残差连接通过 F(x)+x 的形式为梯度提供捷径，缓解深层网络中的梯度消失问题。" },
+    { q:"深度可分离卷积相比标准卷积的优势是？", opts:["精度更高","大幅减少计算量和参数量","更容易训练","不需要激活函数"], ans:1, explain:"深度可分离卷积将标准卷积分解为逐通道卷积和逐点卷积，计算量约减少 8-9 倍。" },
+    { q:"最大池化（Max Pooling）的主要作用是？", opts:["增加特征图分辨率","降低空间分辨率，提供位置不变性，减少计算量","增加通道数","进行特征归一化"], ans:1, explain:"最大池化在局部区域取最大值，降低特征图的空间分辨率，提供一定的平移不变性，并减少后续层的计算量。" }
+  ],
+  "concept-transformer": [
+    { q:"Self-Attention 中 Q、K、V 分别代表？", opts:["Queue、Key、Value","Query、Key、Value","Question、Knowledge、Vision","Query、Kernel、Vector"], ans:1, explain:"在 Self-Attention 中，Q（Query）、K（Key）、V（Value）均从同一输入线性变换得到，通过 Q·K^T 计算注意力权重后加权求和 V。" },
+    { q:"Transformer 使用位置编码的原因是？", opts:["减少计算量","自注意力机制本身不包含位置信息，需要显式注入","替代归一化层","增加模型容量"], ans:1, explain:"Self-Attention 对输入的顺序不敏感，位置编码通过向嵌入中加入位置信息，使模型能区分不同位置的 token。" },
+    { q:"BERT 与 GPT 的主要架构区别是？", opts:["BERT 更深","BERT 是双向编码器（Encoder），GPT 是单向解码器（Decoder）","BERT 使用卷积层","GPT 不使用注意力机制"], ans:1, explain:"BERT 基于 Transformer Encoder，使用双向注意力；GPT 基于 Decoder，使用单向（因果）注意力。" },
+    { q:"Vision Transformer（ViT）处理图像的方式是？", opts:["直接对像素使用注意力","将图像分割为固定大小的 Patch 并展平为序列","使用卷积提取特征后送入 Transformer","只处理图像边缘信息"], ans:1, explain:"ViT 将图像切分为 16×16 的 Patch，每个 Patch 展平后经线性投影得到 token 嵌入，送入标准 Transformer Encoder。" }
+  ],
+  "concept-generative": [
+    { q:"VAE 训练目标 ELBO 由哪两项组成？", opts:["重建损失 + KL 散度","交叉熵 + L2 正则","对抗损失 + 重建损失","KL 散度 + 对抗损失"], ans:0, explain:"ELBO = 重建损失（期望对数似然）- KL(q(z|x)||p(z))，最大化 ELBO 等价于最大化数据对数似然的下界。" },
+    { q:"GAN 训练中"模式崩溃"（Mode Collapse）是指？", opts:["判别器损失为零","生成器只生成有限几种输出，无法覆盖真实数据分布","训练不收敛","生成图像质量差"], ans:1, explain:"模式崩溃指生成器找到能欺骗判别器的少数几种输出并反复生成，导致生成分布只覆盖真实分布的部分模式。" },
+    { q:"扩散模型（Diffusion Model）的核心思想是？", opts:["通过对抗训练生成图像","逐步向数据加噪（正向过程），再学习逐步去噪（逆向过程）","直接从随机噪声映射到图像","通过变分推断学习潜在空间"], ans:1, explain:"扩散模型定义正向过程逐步将数据变为高斯噪声，然后训练神经网络学习逆向去噪过程，推理时从纯噪声逐步采样。" },
+    { q:"Flow-based 模型的特点是？", opts:["需要判别器","使用可逆变换，可以精确计算数据的对数似然","训练不稳定","只适合低维数据"], ans:1, explain:"Flow-based 模型使用一系列可逆（双射）变换将简单分布映射到数据分布，利用变量替换公式精确计算似然。" }
+  ],
+  "concept-rl": [
+    { q:"MDP 的马尔可夫性质是指？", opts:["奖励只与当前状态有关","下一状态只依赖当前状态和动作，与历史无关","智能体的策略是确定性的","环境是完全可观测的"], ans:1, explain:"马尔可夫性质：下一状态只由当前状态和动作决定，与历史无关。" },
+    { q:"Bellman 方程描述的是？", opts:["最优策略的直接求解公式","状态值函数的递归关系（当前值=即时奖励+折扣未来值）","Q 值的更新规则","策略梯度定理"], ans:1, explain:"Bellman 方程：V(s) = E[r + γV(s')]，将当前状态的价值分解为即时奖励和折扣后的下一状态价值。" },
+    { q:"Q-learning 是一种？", opts:["基于模型的方法","无模型、基于值函数的离策略（off-policy）方法","策略梯度方法","进化算法"], ans:1, explain:"Q-learning 是无模型的 TD 学习方法，直接学习最优动作价值函数 Q*，属于离策略方法。" },
+    { q:"ε-greedy 探索策略中 ε 的作用是？", opts:["控制学习率","以 ε 的概率随机探索，以 1-ε 的概率利用当前最优动作","控制折扣因子","确定奖励范围"], ans:1, explain:"ε-greedy 通过参数 ε 平衡探索（随机动作）和利用（最优动作），训练初期通常使用较大 ε，随训练逐渐减小。" }
+  ],
+  "concept-policy-grad": [
+    { q:"策略梯度方法与基于值函数方法的主要区别是？", opts:["策略梯度方法更快","策略梯度直接优化策略参数，适合连续动作空间","策略梯度不需要奖励","策略梯度只适用于离散动作"], ans:1, explain:"策略梯度方法直接对策略参数求梯度并更新，自然处理连续动作空间。" },
+    { q:"PPO 引入裁剪目标的原因是？", opts:["加速计算","限制每次策略更新的幅度，避免更新过大导致性能崩溃","增加探索","处理连续动作空间"], ans:1, explain:"PPO 的裁剪目标通过限制新旧策略的概率比在 [1-ε, 1+ε] 范围内，防止策略更新步长过大导致的训练不稳定。" },
+    { q:"Actor-Critic 方法中 Actor 和 Critic 的作用分别是？", opts:["Actor 评估状态价值，Critic 生成动作","Actor 生成动作（策略），Critic 评估状态价值（值函数）","Actor 处理离散动作，Critic 处理连续动作","两者功能相同，只是网络不同"], ans:1, explain:"Actor 是策略网络，输出动作概率；Critic 是值函数网络，评估当前状态的价值，为 Actor 的更新提供基线。" },
+    { q:"SAC 的"Soft"体现在？", opts:["使用软标签","在奖励中加入策略熵项，鼓励探索（最大熵强化学习框架）","软更新目标网络","使用软激活函数"], ans:1, explain:"SAC 在优化目标中加入策略熵的正则项，使智能体在最大化累积奖励的同时保持策略的随机性（多样化探索）。" }
+  ]
 };
 
-// ═══════════════════════════════════════════════════════
-// D3 图谱
-// ═══════════════════════════════════════════════════════
-const nodes = NODES.map(d => ({...d}));
-const links = EDGES.map(d => ({ source:d.s, target:d.t, w:d.w||1 }));
+const STORAGE_KEY = 'course_kg_data';
+function loadData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } }
+function saveData(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
-// 邻接表
-const adjSet = {};
-nodes.forEach(n => adjSet[n.id] = new Set());
-EDGES.forEach(e => { adjSet[e.s].add(e.t); adjSet[e.t].add(e.s); });
+const TYPE_COLOR = { synthesis:'#E91E63', subject:'#7B68EE', concept:'#29b6f6', source:'#4caf50' };
+const TYPE_R     = { synthesis:20, subject:16, concept:10, source:8 };
+const TYPE_LABEL = { synthesis:'总纲', subject:'学科', concept:'知识点', source:'资料' };
+const BADGE_BG   = { synthesis:'#fce4ec', subject:'#ede7f6', concept:'#e1f5fe', source:'#e8f5e9' };
+const BADGE_CLR  = { synthesis:'#c2185b', subject:'#512da8', concept:'#0277bd', source:'#2e7d32' };
 
-const svg   = d3.select('#graph');
-const width  = () => parseInt(svg.style('width'));
-const height = () => parseInt(svg.style('height'));
+const nodes    = rawNodes.map(d => ({...d}));
+const edges    = rawEdges.map(d => ({...d}));
+const nodeById = Object.fromEntries(nodes.map(n => [n.id, n]));
+
+let selectedNode = null;
+let currentTab   = 'info';
+
+const svg = d3.select('svg#graph');
+const W = () => window.innerWidth;
+const H = () => window.innerHeight - 48;
 const g = svg.append('g');
+svg.call(d3.zoom().scaleExtent([.2,4]).on('zoom', e => g.attr('transform', e.transform)));
 
-svg.call(d3.zoom().scaleExtent([0.15, 4]).on('zoom', e => g.attr('transform', e.transform)));
-
-// 力模拟 — anchor 节点互相排斥更多
 const sim = d3.forceSimulation(nodes)
-  .force('link',    d3.forceLink(links).id(d=>d.id).distance(d => d.w===2 ? 80 : 110).strength(d => d.w===2 ? 0.5 : 0.25))
-  .force('charge',  d3.forceManyBody().strength(d => d.anchor ? -320 : -180))
-  .force('center',  d3.forceCenter(0,0))
-  .force('collide', d3.forceCollide(d => d.anchor ? 36 : 26));
+  .force('link', d3.forceLink(edges).id(d=>d.id).distance(d => {
+    const st=d.source.type||'', tt=d.target.type||'';
+    if(st==='synthesis'||tt==='synthesis') return 160;
+    if(st==='subject'||tt==='subject') return 120;
+    return 90;
+  }).strength(.6))
+  .force('charge', d3.forceManyBody().strength(d=>d.type==='synthesis'?-800:d.type==='subject'?-400:-180))
+  .force('center', d3.forceCenter(W()/2, H()/2))
+  .force('collision', d3.forceCollide().radius(d=>TYPE_R[d.type]+18));
 
-function recenter() {
-  sim.force('center', d3.forceCenter(width()/2, height()/2));
-  sim.alpha(0.15).restart();
-}
-window.addEventListener('resize', recenter);
-setTimeout(recenter, 80);
+const link = g.append('g').selectAll('line').data(edges).join('line')
+  .attr('class','link').attr('stroke-width',1.2).attr('marker-end','url(#arrow)');
 
-// 边
-const linkSel = g.append('g')
-  .selectAll('line').data(links).join('line')
-  .attr('class', d => d.w === 2 ? 'link strong' : 'link');
-
-// 节点
-const nodeSel = g.append('g')
-  .selectAll('g').data(nodes).join('g')
-  .attr('class', d => `node cat-${d.cat}${d.anchor ? ' anchor' : ''}`)
+const node = g.append('g').selectAll('g.node').data(nodes).join('g')
+  .attr('class','node')
   .call(d3.drag()
-    .on('start', (e,d) => { if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
-    .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
-    .on('end',   (e,d) => { if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
-  );
+    .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+    .on('drag', (e,d)=>{d.fx=e.x;d.fy=e.y;})
+    .on('end',  (e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}));
 
-nodeSel.append('circle').attr('r', d => d.anchor ? 20 : 14);
-nodeSel.append('text').text(d => d.label).attr('dy', d => (d.anchor ? 20 : 14) + 14);
+node.append('circle')
+  .attr('r', d=>TYPE_R[d.type])
+  .attr('fill', d=>TYPE_COLOR[d.type])
+  .attr('stroke','#fff').attr('stroke-width',1.5);
+
+node.append('text').attr('dy', d=>TYPE_R[d.type]+13).text(d=>d.label);
 
 sim.on('tick', () => {
-  linkSel
-    .attr('x1', d=>d.source.x).attr('y1', d=>d.source.y)
-    .attr('x2', d=>d.target.x).attr('y2', d=>d.target.y);
-  nodeSel.attr('transform', d=>`translate(${d.x},${d.y})`);
+  link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+      .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+  node.attr('transform',d=>`translate(${d.x},${d.y})`);
 });
 
-// ═══════════════════════════════════════════════════════
-// 状态渲染
-// ═══════════════════════════════════════════════════════
-function applyStatus() {
-  nodeSel.each(function(d) {
-    const s = getStatus(d.id);
-    const el = d3.select(this);
-    el.classed('mastered', s==='mastered');
-    el.classed('learning', s==='learning');
-    el.select('circle')
-      .classed('mastered', s==='mastered')
-      .classed('learning', s==='learning');
-  });
-  updateDashboard();
+function refreshNoteMarkers() {
+  const data = loadData();
+  node.select('circle')
+    .attr('stroke', d => (data[d.id]?.note?.trim()) ? '#f59e0b' : '#fff')
+    .attr('stroke-width', d => (data[d.id]?.note?.trim()) ? 2 : 1.5);
 }
+refreshNoteMarkers();
 
-function updateDashboard() {
-  const total    = nodes.length;
-  const mastered = nodes.filter(n => getStatus(n.id)==='mastered').length;
-  document.getElementById('dash-total-label').textContent = `已掌握 ${mastered} / ${total} 个知识点`;
-  document.getElementById('total-bar').style.width = (mastered/total*100).toFixed(1)+'%';
-
-  ['algo','sys','ai','dev','exp','survey','output'].forEach(cat => {
-    const grp = nodes.filter(n=>n.cat===cat);
-    const m   = grp.filter(n=>getStatus(n.id)==='mastered').length;
-    const pct = grp.length ? (m/grp.length*100).toFixed(0) : 0;
-    document.getElementById(`pct-${cat}`).textContent = pct+'%';
-    document.getElementById(`bar-${cat}`).style.width  = pct+'%';
-  });
-}
-
-applyStatus();
-
-// ═══════════════════════════════════════════════════════
-// 选中 & 详情面板
-// ═══════════════════════════════════════════════════════
-let selectedId = null;
-
-function selectNode(id) {
-  selectedId = id;
-  const d = nodes.find(n=>n.id===id);
-  if (!d) return;
-
-  const neighbors = adjSet[id];
-  nodeSel.classed('dimmed', n => n.id!==id && !neighbors.has(n.id));
-  nodeSel.classed('selected', n => n.id===id);
-  linkSel.classed('highlighted', l => l.source.id===id || l.target.id===id);
-
-  const panel = document.getElementById('detail-panel');
-  panel.classList.remove('hidden');
-  document.getElementById('dashboard').classList.remove('panel-hidden');
-
-  document.getElementById('detail-title').textContent = d.label;
-  document.getElementById('detail-cat-badge').textContent = CAT_META[d.cat]?.label || d.cat;
-  document.getElementById('detail-desc').textContent = d.desc || '';
-
-  const list = document.getElementById('detail-links-list');
-  list.innerHTML = '';
-  [...neighbors].sort().forEach(nid => {
-    const nd = nodes.find(x=>x.id===nid);
-    if (!nd) return;
-    const chip = document.createElement('div');
-    chip.className = 'link-chip';
-    chip.textContent = nd.label;
-    chip.onclick = () => selectNode(nid);
-    list.appendChild(chip);
-  });
-
-  document.getElementById('detail-note').value = notesMap[id] || '';
-  const s = getStatus(id);
-  document.querySelectorAll('.status-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.s===s));
-}
-
-function clearSelection() {
-  selectedId = null;
-  nodeSel.classed('dimmed', false).classed('selected', false);
-  linkSel.classed('highlighted', false);
-  document.getElementById('detail-panel').classList.add('hidden');
-  document.getElementById('dashboard').classList.add('panel-hidden');
-}
-
-nodeSel.on('click', (e,d) => {
-  e.stopPropagation(); hideCtxMenu();
-  if (selectedId===d.id) clearSelection(); else selectNode(d.id);
+const tooltip = document.getElementById('hover-tooltip');
+node.on('mouseover',(e,d)=>{
+  tooltip.style.display='block';
+  tooltip.innerHTML=`<strong>${d.label}</strong><br><span style="color:#888;font-size:10px">${TYPE_LABEL[d.type]}</span>`;
+  d3.selectAll('.node').classed('dimmed',n=>n.id!==d.id);
+  d3.selectAll('.link').classed('dimmed',e=>e.source.id!==d.id&&e.target.id!==d.id);
+}).on('mousemove',e=>{
+  tooltip.style.left=(e.clientX+14)+'px'; tooltip.style.top=(e.clientY-10)+'px';
+}).on('mouseout',()=>{
+  tooltip.style.display='none';
+  if(!selectedNode){d3.selectAll('.node').classed('dimmed',false);d3.selectAll('.link').classed('dimmed',false);}
 });
 
-nodeSel.on('dblclick', (e,d) => {
+node.on('click',(e,d)=>{
   e.stopPropagation();
-  const cycle = { todo:'learning', learning:'mastered', mastered:'todo' };
-  setStatus(d.id, cycle[getStatus(d.id)]);
-  applyStatus();
-  if (selectedId===d.id) selectNode(d.id);
+  if(selectedNode===d.id){closeDetail();return;}
+  selectedNode=d.id;
+  const neighbors=new Set(edges.flatMap(e=>e.source.id===d.id?[e.target.id]:e.target.id===d.id?[e.source.id]:[]));
+  d3.selectAll('.node')
+    .classed('selected',n=>n.id===d.id)
+    .classed('dimmed',n=>n.id!==d.id&&!neighbors.has(n.id));
+  d3.selectAll('.link')
+    .classed('active',e=>e.source.id===d.id||e.target.id===d.id)
+    .classed('dimmed',e=>e.source.id!==d.id&&e.target.id!==d.id);
+  currentTab='info';
+  showDetail(d, neighbors);
 });
+svg.on('click',()=>closeDetail());
 
-svg.on('click', () => { hideCtxMenu(); clearSelection(); });
+function showDetail(d, neighbors) {
+  document.getElementById('d-title').textContent=d.label;
+  const badge=document.getElementById('d-badge');
+  badge.textContent=TYPE_LABEL[d.type];
+  badge.style.background=BADGE_BG[d.type]; badge.style.color=BADGE_CLR[d.type];
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['info','note','quiz'][i]===currentTab));
+  renderTab(d, neighbors);
+  document.getElementById('detail').style.display='flex';
+}
 
-document.querySelectorAll('.status-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (!selectedId) return;
-    setStatus(selectedId, btn.dataset.s);
-    applyStatus();
-    selectNode(selectedId);
-  });
-});
+function switchTab(tab) {
+  currentTab=tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['info','note','quiz'][i]===tab));
+  const d=nodeById[selectedNode];
+  const neighbors=new Set(edges.flatMap(e=>e.source.id===d.id?[e.target.id]:e.target.id===d.id?[e.source.id]:[]));
+  renderTab(d, neighbors);
+}
 
-document.getElementById('detail-note').addEventListener('input', e => {
-  if (!selectedId) return;
-  notesMap[selectedId] = e.target.value;
-  saveNotes(notesMap);
-});
-
-// ═══════════════════════════════════════════════════════
-// 右键菜单
-// ═══════════════════════════════════════════════════════
-const ctxMenu = document.getElementById('ctx-menu');
-let ctxTargetId = null;
-
-nodeSel.on('contextmenu', (e,d) => {
-  e.preventDefault(); e.stopPropagation();
-  ctxTargetId = d.id;
-  ctxMenu.style.display = 'block';
-  ctxMenu.style.left = e.clientX+'px';
-  ctxMenu.style.top  = e.clientY+'px';
-});
-
-document.querySelectorAll('.ctx-item').forEach(item => {
-  item.addEventListener('click', () => {
-    if (!ctxTargetId) return;
-    setStatus(ctxTargetId, item.dataset.s);
-    applyStatus();
-    if (selectedId===ctxTargetId) selectNode(ctxTargetId);
-    hideCtxMenu();
-  });
-});
-
-window.addEventListener('click', hideCtxMenu);
-function hideCtxMenu() { ctxMenu.style.display='none'; ctxTargetId=null; }
-
-// ═══════════════════════════════════════════════════════
-// 搜索
-// ═══════════════════════════════════════════════════════
-document.getElementById('search').addEventListener('input', e => {
-  const q = e.target.value.trim().toLowerCase();
-  if (!q) { nodeSel.classed('dimmed', false); return; }
-  nodeSel.classed('dimmed', d => !d.label.toLowerCase().includes(q) && !d.id.toLowerCase().includes(q));
-});
-
-document.getElementById('search').addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  const q = e.target.value.trim().toLowerCase();
-  const found = nodes.find(n => n.label.toLowerCase().includes(q));
-  if (found) {
-    selectNode(found.id);
-    const t = d3.zoomTransform(svg.node());
-    svg.transition().duration(400).call(
-      d3.zoom().transform,
-      d3.zoomIdentity.translate(width()/2 - t.k*found.x, height()/2 - t.k*found.y).scale(t.k)
-    );
+function renderTab(d, neighbors) {
+  const body=document.getElementById('detail-body');
+  if(currentTab==='info') {
+    let html=`<div class="section-label">描述</div><div id="d-desc">${d.desc||'暂无描述'}</div>`;
+    if(d.url) html+=`<div class="section-label">链接</div><a href="${d.url}" target="_blank" style="display:flex;align-items:center;gap:8px;font-size:12px;color:#6e54b5;text-decoration:none;padding:7px 10px;border-radius:6px;background:rgba(110,84,181,.06);border:1px solid rgba(110,84,181,.15);">🔗 ${d.url}</a>`;
+    html+=`<div class="section-label">关联节点 <span style="color:#aaa;font-weight:400">(${neighbors.size})</span></div><div id="d-connections"></div>`;
+    body.innerHTML=html;
+    const connEl=document.getElementById('d-connections');
+    [...neighbors].map(id=>nodeById[id]).filter(Boolean).forEach(n=>{
+      const item=document.createElement('div');
+      item.className='conn-item';
+      item.innerHTML=`<div class="conn-dot" style="background:${TYPE_COLOR[n.type]}"></div><span class="conn-name">${n.label}</span><span class="conn-type">${TYPE_LABEL[n.type]}</span>`;
+      item.onclick=()=>node.filter(x=>x.id===n.id).dispatch('click');
+      connEl.appendChild(item);
+    });
+  } else if(currentTab==='note') {
+    const data=loadData();
+    const note=data[d.id]?.note||'';
+    body.innerHTML=`
+      <div class="section-label" style="margin-top:4px">我的笔记</div>
+      <textarea id="note-area" placeholder="在这里写下你的学习笔记…">${note}</textarea>
+      <div style="display:flex;align-items:center;margin-top:8px">
+        <button id="note-save" onclick="saveNote('${d.id}')">保存笔记</button>
+        <span id="note-saved">已保存 ✓</span>
+      </div>`;
+  } else if(currentTab==='quiz') {
+    const data=loadData();
+    const history=(data[d.id]?.quizHistory||[]).slice().reverse();
+    const hasQuiz=!!(QUIZ_DATA[d.id]&&QUIZ_DATA[d.id].length>0);
+    let html=`<div class="section-label" style="margin-top:4px">考试测验</div>`;
+    if(hasQuiz) html+=`<button id="quiz-start-btn" onclick="startQuiz('${d.id}')">🎯 开始考试（${QUIZ_DATA[d.id].length} 题）</button>`;
+    else html+=`<div style="font-size:12px;color:#aaa;padding:12px 0">该节点暂无题目</div>`;
+    html+=`<div class="section-label" style="margin-top:16px">考试记录</div>`;
+    if(history.length===0) html+=`<div style="font-size:12px;color:#aaa">暂无考试记录</div>`;
+    else history.forEach(h=>{
+      const pct=Math.round(h.score/h.total*100);
+      const cls=pct>=80?'good':pct>=60?'ok':'bad';
+      html+=`<div class="quiz-history-item"><span>${h.date}</span><span class="quiz-score ${cls}">${h.score}/${h.total}（${pct}%）</span></div>`;
+    });
+    body.innerHTML=html;
   }
-});
+}
 
-// ═══════════════════════════════════════════════════════
-// 截图
-// ═══════════════════════════════════════════════════════
-document.getElementById('btn-screenshot').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-screenshot');
-  btn.textContent = '生成中…';
-  try {
-    const dash = document.getElementById('dashboard');
-    const canvas = await html2canvas(dash, { backgroundColor:'#ffffff', scale:2 });
-    const a = document.createElement('a');
-    a.download = `知识图谱进度_${new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')}.png`;
-    a.href = canvas.toDataURL();
-    a.click();
-  } catch(err) { alert('截图失败：'+err.message); }
-  btn.textContent = '📸 生成进度截图';
-});
+function saveNote(nodeId) {
+  const note=document.getElementById('note-area').value;
+  const data=loadData();
+  if(!data[nodeId]) data[nodeId]={};
+  data[nodeId].note=note;
+  saveData(data);
+  const saved=document.getElementById('note-saved');
+  saved.style.opacity=1;
+  setTimeout(()=>saved.style.opacity=0, 1500);
+  refreshNoteMarkers();
+}
 
-document.getElementById('dashboard').classList.add('panel-hidden');
+function closeDetail() {
+  selectedNode=null;
+  document.getElementById('detail').style.display='none';
+  d3.selectAll('.node').classed('selected dimmed',false);
+  d3.selectAll('.link').classed('active dimmed',false);
+}
+
+let currentQuizNodeId=null, userAnswers=[], quizSubmitted=false;
+
+function startQuiz(nodeId) {
+  currentQuizNodeId=nodeId; userAnswers=[]; quizSubmitted=false;
+  const d=nodeById[nodeId], qs=QUIZ_DATA[nodeId]||[];
+  document.getElementById('quiz-title').textContent=`${d.label} — 测验`;
+  document.getElementById('quiz-meta').textContent=`共 ${qs.length} 道单选题`;
+  document.getElementById('quiz-result').textContent='';
+  document.getElementById('quiz-submit').disabled=false;
+  document.getElementById('quiz-submit').textContent='提交答案';
+  const qEl=document.getElementById('quiz-questions');
+  qEl.innerHTML='';
+  qs.forEach((q,qi)=>{
+    userAnswers.push(null);
+    const block=document.createElement('div');
+    block.className='q-block';
+    block.innerHTML=`<div class="q-text">${qi+1}. ${q.q}</div><div class="q-options" id="opts-${qi}"></div><div class="q-explain" id="explain-${qi}" style="display:none">${q.explain}</div>`;
+    qEl.appendChild(block);
+    const optsEl=document.getElementById(`opts-${qi}`);
+    q.opts.forEach((opt,oi)=>{
+      const btn=document.createElement('div');
+      btn.className='q-opt'; btn.textContent=`${['A','B','C','D'][oi]}. ${opt}`;
+      btn.onclick=()=>selectOpt(qi,oi);
+      optsEl.appendChild(btn);
+    });
+  });
+  document.getElementById('quiz-modal').classList.add('open');
+}
+
+function selectOpt(qi,oi) {
+  if(quizSubmitted) return;
+  userAnswers[qi]=oi;
+  document.getElementById(`opts-${qi}`).querySelectorAll('.q-opt').forEach((b,i)=>b.classList.toggle('selected',i===oi));
+}
+
+function submitQuiz() {
+  if(quizSubmitted){closeQuiz();return;}
+  const qs=QUIZ_DATA[currentQuizNodeId]||[];
+  let score=0;
+  qs.forEach((q,qi)=>{
+    document.getElementById(`opts-${qi}`).querySelectorAll('.q-opt').forEach((b,oi)=>{
+      b.classList.remove('selected');
+      if(oi===q.ans) b.classList.add('correct');
+      else if(oi===userAnswers[qi]&&userAnswers[qi]!==q.ans) b.classList.add('wrong');
+    });
+    if(userAnswers[qi]===q.ans) score++;
+    document.getElementById(`explain-${qi}`).style.display='block';
+  });
+  quizSubmitted=true;
+  const pct=Math.round(score/qs.length*100);
+  document.getElementById('quiz-result').textContent=`得分：${score}/${qs.length}（${pct}%）`;
+  document.getElementById('quiz-submit').textContent='关闭';
+  const data=loadData();
+  if(!data[currentQuizNodeId]) data[currentQuizNodeId]={};
+  if(!data[currentQuizNodeId].quizHistory) data[currentQuizNodeId].quizHistory=[];
+  data[currentQuizNodeId].quizHistory.push({ date:new Date().toLocaleDateString('zh-CN'), score, total:qs.length });
+  saveData(data);
+  const d=nodeById[currentQuizNodeId];
+  const neighbors=new Set(edges.flatMap(e=>e.source.id===d.id?[e.target.id]:e.target.id===d.id?[e.source.id]:[]));
+  if(currentTab==='quiz') renderTab(d, neighbors);
+}
+
+function closeQuiz() { document.getElementById('quiz-modal').classList.remove('open'); }
+
+function filterType(type) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  const idMap={all:'btn-all',synthesis:'btn-synthesis',subject:'btn-subject',concept:'btn-concept',source:'btn-source'};
+  const btn=document.getElementById(idMap[type]);
+  if(btn){btn.classList.add('active');btn.style.background=type==='all'?'#6b6b6b':TYPE_COLOR[type]||'#6b6b6b';btn.style.color='#fff';}
+  if(type==='all'){node.style('display',null);link.style('display',null);}
+  else{
+    const vis=new Set(nodes.filter(n=>n.type===type).map(n=>n.id));
+    node.style('display',d=>vis.has(d.id)?null:'none');
+    link.style('display',e=>vis.has(e.source.id)&&vis.has(e.target.id)?null:'none');
+  }
+}
+function clearAll(){filterType('all');closeDetail();}
+function searchNodes(q){
+  if(!q){node.classed('dimmed',false);link.classed('dimmed',false);return;}
+  const lq=q.toLowerCase();
+  const matched=new Set(nodes.filter(n=>n.label.toLowerCase().includes(lq)||(n.desc||'').toLowerCase().includes(lq)).map(n=>n.id));
+  node.classed('dimmed',d=>!matched.has(d.id));
+  link.classed('dimmed',e=>!matched.has(e.source.id)&&!matched.has(e.target.id));
+}
+
+document.getElementById('stats').textContent=`${nodes.length} 节点 · ${edges.length} 连接`;
+window.addEventListener('resize',()=>sim.force('center',d3.forceCenter(W()/2,H()/2)).alpha(.1).restart());
 </script>
 </body>
 </html>
